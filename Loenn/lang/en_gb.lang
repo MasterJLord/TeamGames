@@ -1,0 +1,7 @@
+# Sample Entity
+entities.practiceMod/SampleEntity.placements.name.normal=Sample Entity
+entities.practiceMod/SampleEntity.attributes.description.sampleProperty=A sample property for your entity.
+
+# Sample Trigger
+triggers.practiceMod/SampleTrigger.placements.name.normal=Sample Trigger
+triggers.practiceMod/SampleTrigger.attributes.description.sampleProperty=A sample property for your trigger.

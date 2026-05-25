@@ -1,0 +1,5 @@
+# Sample Entity
+placements.entities.practiceMod/SampleEntity.tooltips.sampleProperty=A sample property for your entity.
+
+# Sample Trigger
+placements.triggers.practiceMod/SampleTrigger.tooltips.sampleProperty=A sample property for your trigger.
