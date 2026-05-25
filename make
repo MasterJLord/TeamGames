@@ -1,1 +1,2 @@
-echo "echoed"
+ls
+dotnet build
