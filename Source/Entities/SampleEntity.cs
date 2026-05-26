@@ -1,4 +1,6 @@
 using Celeste.Mod.Entities;
+using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -16,14 +18,18 @@ public class SampleEntity : Actor {
 	private BloomPoint bloom;
 	private Vector2 startPosition;
 	private Vector2 anchor;
+	private Vector2 lastSpeedPosition;
 	private Vector2 hitSpeed;
 	private States state;
-	private Curve returnCurve = new SimpleCurve(Position, startPosition, control);
-	private bool Collidable = false;
+	private Sprite sprite;
+	private SimpleCurve returnCurve;
+	private float respawnTimer = 0;
 	private float goneTimer = 2.5f;
 	private Vector2 lastHitSpeedPosition;
 	private ParticleType P_Ambience;
 	private ParticleType P_Launch;
+	private float playerAliveFade;
+	private Vector2 lastPlayerPos;
 
 	public SampleEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 		base.Collider = new Circle(12f);
@@ -32,12 +38,6 @@ public class SampleEntity : Actor {
 		Add(light = new VertexLight(Color.Teal, 1f, 16, 32));
 		Add(bloom = new BloomPoint(0.5f, 16f));
 		anchor = Position;
-	}
-
-	[MethodImpl(MethodImplOptions.NoInlining)]
-	public Puffer(EntityData data, Vector2 offset)
-		: this(data.Position + offset, data.Bool("right"))
-	{
 	}
 
 	public override bool IsRiding(JumpThru jumpThru)
@@ -50,7 +50,7 @@ public class SampleEntity : Actor {
 		return false;
 	}
 
-	protected override void OnSquish(CollisionData data)
+	public override void OnSquish(CollisionData data)
 	{
 		GotoGone();
 	}
@@ -163,25 +163,23 @@ public class SampleEntity : Actor {
 		if (entity == null)
 		{
 			playerAliveFade = Calc.Approach(playerAliveFade, 0f, 1f * Engine.DeltaTime);
-		}
-		else
-		{
+		} else {
 			playerAliveFade = Calc.Approach(playerAliveFade, 1f, 1f * Engine.DeltaTime);
 			lastPlayerPos = entity.Center;
 		}
 		switch (state)
 		{
 		case States.Idle:
-			foreach (PufferCollider component in base.Scene.Tracker.GetComponents<PufferCollider>())
+			foreach (BumperCollider component in base.Scene.Tracker.GetComponents<BumperCollider>())
 			{
 				component.Check(this);
 			}
 			break;
 		case States.Hit:
 			lastSpeedPosition = Position;
-			MoveH(hitSpeed.X * Engine.DeltaTime, onCollideH);
+			MoveH(hitSpeed.X * Engine.DeltaTime, OnCollideH);
 			MoveV(hitSpeed.Y * Engine.DeltaTime, OnCollideV);
-			anchorPosition = Position;
+			anchor = Position;
 			hitSpeed.X = Calc.Approach(hitSpeed.X, 0f, 150f * Engine.DeltaTime);
 			hitSpeed = Calc.Approach(hitSpeed, Vector2.Zero, 320f * Engine.DeltaTime);
 			if (base.Top >= (float)(SceneAs<Level>().Bounds.Bottom + 5))
@@ -190,7 +188,7 @@ public class SampleEntity : Actor {
 				GotoGone();
 				break;
 			}
-			foreach (PufferCollider component2 in base.Scene.Tracker.GetComponents<PufferCollider>())
+			foreach (BumperCollider component2 in base.Scene.Tracker.GetComponents<BumperCollider>())
 			{
 				component2.Check(this);
 			}
@@ -221,6 +219,7 @@ public class SampleEntity : Actor {
 				break;
 			}
 		}
+	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public bool HitSpring(Spring spring)
@@ -238,7 +237,6 @@ public class SampleEntity : Actor {
 		case Spring.Orientations.WallLeft:
 			if (hitSpeed.X <= 60f)
 			{
-				facing.X = 1f;
 				GotoHitSpeed(280f * Vector2.UnitX);
 				MoveTowardsY(spring.CenterY, 4f);
 				return true;
@@ -247,7 +245,6 @@ public class SampleEntity : Actor {
 		case Spring.Orientations.WallRight:
 			if (hitSpeed.X >= -60f)
 			{
-				facing.X = -1f;
 				GotoHitSpeed(280f * -Vector2.UnitX);
 				MoveTowardsY(spring.CenterY, 4f);
 				return true;
@@ -265,7 +262,8 @@ public class SampleEntity : Actor {
 		}
 	}
 
-	public override void OnPlayer(Player player) {
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void OnPlayer(Player player) {
 		if (respawnTimer <= 0f)
 		{
 			if ((base.Scene as Level).Session.Area.ID == 9)
