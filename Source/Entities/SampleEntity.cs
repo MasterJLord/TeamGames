@@ -26,10 +26,12 @@ public class SampleEntity : Actor {
 	private float respawnTimer = 0;
 	private float goneTimer = 2.5f;
 	private Vector2 lastHitSpeedPosition;
-	private ParticleType P_Ambience;
-	private ParticleType P_Launch;
+	public static ParticleType P_Ambience;
+	public static ParticleType P_Launch;
 	private float playerAliveFade;
 	private Vector2 lastPlayerPos;
+	private Collision onCollideV;
+	private Collision onCollideH;
 
 	public SampleEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 		base.Collider = new Circle(12f);
@@ -38,6 +40,45 @@ public class SampleEntity : Actor {
 		Add(light = new VertexLight(Color.Teal, 1f, 16, 32));
 		Add(bloom = new BloomPoint(0.5f, 16f));
 		anchor = Position;
+		startPosition = Position;
+		onCollideV = OnCollideV;
+		onCollideH = OnCollideH;
+		if (P_Ambience == null) {
+			P_Ambience = new ParticleType
+			{
+				Source = GFX.Game["particles/rect"],
+				Color = Calc.HexToColor("47b5cc"),
+				Color2 = Calc.HexToColor("c4f4ff"),
+				ColorMode = ParticleType.ColorModes.Blink,
+				FadeMode = ParticleType.FadeModes.InAndOut,
+				Size = 0.5f,
+				SizeRange = 0.2f,
+				RotationMode = ParticleType.RotationModes.SameAsDirection,
+				LifeMin = 0.2f,
+				LifeMax = 0.4f,
+				SpeedMin = 10f,
+				SpeedMax = 20f,
+				DirectionRange = (float)Math.PI / 6f
+			};
+			P_Launch = new ParticleType
+			{
+				Source = GFX.Game["particles/rect"],
+				Color = Calc.HexToColor("47b5cc"),
+				Color2 = Calc.HexToColor("c4f4ff"),
+				ColorMode = ParticleType.ColorModes.Blink,
+				FadeMode = ParticleType.FadeModes.Late,
+				Size = 0.5f,
+				SizeRange = 0.2f,
+				RotationMode = ParticleType.RotationModes.Random,
+				LifeMin = 0.6f,
+				LifeMax = 1.2f,
+				SpeedMin = 40f,
+				SpeedMax = 140f,
+				SpeedMultiplier = 0.1f,
+				Acceleration = new Vector2(0f, 10f),
+				DirectionRange = 0.6981317f
+			};
+		}
 	}
 
 	public override bool IsRiding(JumpThru jumpThru)
@@ -177,14 +218,14 @@ public class SampleEntity : Actor {
 			break;
 		case States.Hit:
 			lastSpeedPosition = Position;
-			MoveH(hitSpeed.X * Engine.DeltaTime, OnCollideH);
-			MoveV(hitSpeed.Y * Engine.DeltaTime, OnCollideV);
+			MoveH(hitSpeed.X * Engine.DeltaTime, onCollideH);
+			MoveV(hitSpeed.Y * Engine.DeltaTime, onCollideV);
 			anchor = Position;
 			hitSpeed.X = Calc.Approach(hitSpeed.X, 0f, 150f * Engine.DeltaTime);
 			hitSpeed = Calc.Approach(hitSpeed, Vector2.Zero, 320f * Engine.DeltaTime);
 			if (base.Top >= (float)(SceneAs<Level>().Bounds.Bottom + 5))
 			{
-				sprite.Play("hidden");
+				// sprite.Play("hidden");
 				GotoGone();
 				break;
 			}
@@ -283,7 +324,7 @@ public class SampleEntity : Actor {
 			SceneAs<Level>().Displacement.AddBurst(base.Center, 0.3f, 8f, 32f, 0.8f);
 			SceneAs<Level>().Particles.Emit(P_Launch, 12, base.Center + vector2 * 12f, Vector2.One * 3f, vector2.Angle());
 			// Moves the bumper in the opposite direction
-			GotoHit(vector2 * 300f);
+			GotoHitSpeed(vector2 * -300f);
 		}
 	}
 }
