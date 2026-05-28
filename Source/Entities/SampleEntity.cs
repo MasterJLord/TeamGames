@@ -17,29 +17,28 @@ public class SampleEntity : Actor {
 	private VertexLight light;
 	private BloomPoint bloom;
 	private Vector2 startPosition;
-	private Vector2 anchor;
-	private Vector2 lastSpeedPosition;
 	private Vector2 hitSpeed;
 	private States state;
 	private Sprite sprite;
 	private SimpleCurve returnCurve;
 	private float respawnTimer = 0;
 	private float goneTimer = 2.5f;
-	private Vector2 lastHitSpeedPosition;
 	public static ParticleType P_Ambience;
 	public static ParticleType P_Launch;
 	private float playerAliveFade;
-	private Vector2 lastPlayerPos;
 	private Collision onCollideV;
 	private Collision onCollideH;
+	private Collider moveCollider;
+	private Collider normalCollider;
+	private static float bounciness = 0.6f;
 
 	public SampleEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
-		base.Collider = new Circle(12f);
+		moveCollider = new Hitbox(12f, 10f, -7f, 7f);
+		base.Collider = (normalCollider = new Circle(12f));
 		Add(new PlayerCollider(OnPlayer));
 		Add(sprite = GFX.SpriteBank.Create("bumper"));
 		Add(light = new VertexLight(Color.Teal, 1f, 16, 32));
 		Add(bloom = new BloomPoint(0.5f, 16f));
-		anchor = Position;
 		startPosition = Position;
 		onCollideV = OnCollideV;
 		onCollideH = OnCollideH;
@@ -99,7 +98,7 @@ public class SampleEntity : Actor {
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	private void OnCollideH(CollisionData data)
 	{
-		hitSpeed.X *= -0.8f;
+		hitSpeed.X *= -1 * bounciness;
 	}
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	private void OnCollideV(CollisionData data)
@@ -118,7 +117,7 @@ public class SampleEntity : Actor {
 			}
 		}
 		// Bounces off of the floor/ceiling
-		hitSpeed.Y *= -0.8f;
+		hitSpeed.Y *= -1 * bounciness;
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
@@ -206,32 +205,31 @@ public class SampleEntity : Actor {
 			playerAliveFade = Calc.Approach(playerAliveFade, 0f, 1f * Engine.DeltaTime);
 		} else {
 			playerAliveFade = Calc.Approach(playerAliveFade, 1f, 1f * Engine.DeltaTime);
-			lastPlayerPos = entity.Center;
 		}
 		switch (state)
 		{
 		case States.Idle:
-			foreach (BumperCollider component in base.Scene.Tracker.GetComponents<BumperCollider>())
+			foreach (PufferCollider component in base.Scene.Tracker.GetComponents<PufferCollider>())
 			{
-				component.Check(this);
+				CheckPufferCollider(component);
 			}
 			break;
 		case States.Hit:
-			lastSpeedPosition = Position;
+			base.Collider = moveCollider;
 			MoveH(hitSpeed.X * Engine.DeltaTime, onCollideH);
 			MoveV(hitSpeed.Y * Engine.DeltaTime, onCollideV);
-			anchor = Position;
 			hitSpeed.X = Calc.Approach(hitSpeed.X, 0f, 150f * Engine.DeltaTime);
 			hitSpeed = Calc.Approach(hitSpeed, Vector2.Zero, 320f * Engine.DeltaTime);
 			if (base.Top >= (float)(SceneAs<Level>().Bounds.Bottom + 5))
 			{
 				// sprite.Play("hidden");
+				Visible = false;
 				GotoGone();
 				break;
 			}
-			foreach (BumperCollider component2 in base.Scene.Tracker.GetComponents<BumperCollider>())
+			foreach (PufferCollider component2 in base.Scene.Tracker.GetComponents<PufferCollider>())
 			{
-				component2.Check(this);
+				CheckPufferCollider(component2);
 			}
 			if (hitSpeed == Vector2.Zero)
 			{
@@ -260,6 +258,7 @@ public class SampleEntity : Actor {
 				break;
 			}
 		}
+		base.Collider = normalCollider;
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
@@ -326,5 +325,19 @@ public class SampleEntity : Actor {
 			// Moves the bumper in the opposite direction
 			GotoHitSpeed(vector2 * -300f);
 		}
+	}
+
+	private void CheckPufferCollider(PufferCollider pufferCollider) {
+		
+		Collider collider = pufferCollider.Entity.Collider;
+		if (pufferCollider.Collider != null)
+		{
+			pufferCollider.Entity.Collider = pufferCollider.Collider;
+		}
+		if (CollideCheck(pufferCollider.Entity))
+		{
+			HitSpring((Spring)pufferCollider.Entity);
+		}
+		pufferCollider.Entity.Collider = collider;
 	}
 }
