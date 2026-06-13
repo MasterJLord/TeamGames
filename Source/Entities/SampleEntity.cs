@@ -36,7 +36,7 @@ public class SampleEntity : Actor {
 		moveCollider = new Hitbox(12f, 10f, -7f, 7f);
 		base.Collider = (normalCollider = new Circle(12f));
 		Add(new PlayerCollider(OnPlayer));
-		Add(sprite = GFX.SpriteBank.Create("bumper"));
+		Add(sprite = GFX.SpriteBank.Create("PushBumper"));
 		Add(light = new VertexLight(Color.Teal, 1f, 16, 32));
 		Add(bloom = new BloomPoint(0.5f, 16f));
 		startPosition = Position;
