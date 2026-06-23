@@ -9,7 +9,7 @@ namespace Celeste.Mod.practiceMod.Entities;
 
 [CustomEntity("practiceMod/TeamControlledZone")]
 public class TeamControlledZone : Trigger {
-	public TeamManager.Teams MyTeam;
+	public TeamManager.Team MyTeam;
 	private List<Player> myPlayersWithin = new List<Player>();
 	private List<Player> enemyPlayersWithin = new List<Player>();
 	

@@ -7,20 +7,21 @@ using Monocle;
 namespace Celeste.Mod.practiceMod.Entities;
 
 [CustomEntity("practiceMod/TeamAssigner")]
-public class TeamAssigner : Entity {
-	public TeamManager.Teams myTeam;
+public class TeamAssigner : Solid {
+	public TeamManager.Team MyTeam;
+	private Sprite sprite;
 
-	public TeamAssigner(EntityData data, Vector2 offset) : base(data.Position + offset) {
+	public TeamAssigner(EntityData data, Vector2 offset) : base(data.Position + offset, 16f, 16f, false) {
+		MyTeam = (TeamManager.Team) data.Float("Team");
+		Add(sprite = GFX.SpriteBank.Create("dashSwitch_default"));
+		base.Collider.Width = 16f;
+		base.Collider.Height = 8f;
+		OnDashCollide = OnDashed;
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	private DashCollisionResults OnDashed(Player player, Vector2 direction) {
-		TeamManager teamManager = player.Get<TeamManager>();
-		if (teamManager == null) {
-			player.Add(teamManager = new TeamManager(TeamManager.Teams.NONE));
-		} else {
-			teamManager.Team = myTeam;
-		}
+		TeamManager.SetTeam(MyTeam);
 		return DashCollisionResults.NormalCollision;
 	}
 }
