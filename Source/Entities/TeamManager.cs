@@ -11,8 +11,7 @@ using Celeste.Mod.CelesteNet.Client.Entities;
 
 namespace Celeste.Mod.practiceMod.Entities;
 
-[CustomEntity("practiceMod/TeamManager")]
-public class TeamManager {
+public static class TeamManager {
 
 	public enum Team {
 		RED,
@@ -25,7 +24,7 @@ public class TeamManager {
 	private static Dictionary<uint, Team> playerTeamAssignments = new();
 	private static uint? localPlayerID {
 		get {
-			return clientContext.Client.PlayerInfo.ID;
+			return clientContext?.Client.PlayerInfo.ID;
 		}
 	}
 	private static CelesteNetClientContext clientContext;
@@ -59,14 +58,22 @@ public class TeamManager {
 	}
 
 	public static void SetTeam(Team newTeam = Team.NONE) {
+		// Updates the local player's team locally
 		if (localPlayerID == null) {
 			return;
 		}
 		if (GetTeam((uint) localPlayerID) == newTeam) {
 			return;
 		}
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
 		OnLocalPlayerSwitched(newTeam);
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
+		// Updates the local player's team remotely
+		DataTeamSwitchEvent packet = new DataTeamSwitchEvent {
+			SwitchingPlayerID = (uint) localPlayerID,
+			NewTeam = newTeam
+		};
+		clientContext.Client.Send(packet);
 	}
 
 	// Wrapper functions for the events
@@ -82,19 +89,30 @@ public class TeamManager {
 		RemotePlayerSwitched?.Invoke(playerID, newTeam);
 	}
 
-	// Functions used to get access to the client context
-	
-	public void Load() {
-		CelesteNetClientContext.OnCreate += GetClientContext;
-	}
-
-	private void GetClientContext(CelesteNetClientContext context) {
+	// Function used to get access to the client context
+	public static void GetClientContext(CelesteNetClientContext context) {
 		clientContext = context;
-		context.Client.Data.RegisterHandler<DataUnparsed>((DataHandler<DataUnparsed>) Handle);
+		CelesteNetClient client = context.Client;
+		// TODO: data doesn't seem to exist when the client is created; fix this
+		DataContext data = client.Data;
+		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
+		data.RegisterHandler<DataUnparsed>(Handle);
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
+		Logger.Log(LogLevel.Debug, "PracticeMod/TeamManager", "ID is " + data.DataTypeToID[typeof(DataTeamSwitchEvent)]);
 		// TODO: fetch teams information from the server when joining
 	}
 
-	private static void Handle(CelesteNetConnection con, DataUnparsed data) {
+	// Updates the remote players' teams locally
+	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
+		if (GetTeam(data.SwitchingPlayerID) == data.NewTeam) {
+			return;
+		}
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + localPlayerID + " is now " + data.NewTeam + ")");
+		OnRemotePlayerSwitched(data.SwitchingPlayerID, data.NewTeam);
+		playerTeamAssignments[data.SwitchingPlayerID] = data.NewTeam;
+	}
 
+	private static void Handle(CelesteNetConnection con, DataUnparsed data) {
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Unparsed data received");
 	}
 }

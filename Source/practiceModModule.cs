@@ -1,4 +1,6 @@
 ﻿using System;
+using Celeste.Mod.practiceMod.Entities;
+using Celeste.Mod.CelesteNet.Client;
 
 namespace Celeste.Mod.practiceMod;
 
@@ -26,7 +28,8 @@ public class practiceModModule : EverestModule {
     }
 
     public override void Load() {
-        // TODO: apply any hooks that should always be active
+	Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Loaded");
+	CelesteNetClientContext.OnInit += TeamManager.GetClientContext;
     }
 
     public override void Unload() {
