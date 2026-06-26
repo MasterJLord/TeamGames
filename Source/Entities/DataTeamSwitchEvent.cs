@@ -18,12 +18,39 @@ public class DataTeamSwitchEvent : DataType<DataTeamSwitchEvent> {
 		DataID = "TeamSwitchEvent";
 	}
 
+	public DataPlayerInfo Player;
 	public uint SwitchingPlayerID;
 	public TeamManager.Team NewTeam;
 
+	// Gives this data the MetaPlayerUpdate metadata, which tells the server to broadcast it to all other players when it is sent to the server
+        public override MetaType[] GenerateMeta(DataContext ctx)
+	{
+		MetaType[] meta = new MetaType[] {
+			new MetaPlayerUpdate(Player)
+		};
+		return meta;
+	}
+
+        public override void FixupMeta(DataContext ctx) {
+            Player = Get<MetaPlayerUpdate>(ctx);
+        }
+        protected override MetaType[] ReadMeta(CelesteNetBinaryReader reader) {
+            MetaType[] meta = new MetaType[reader.ReadByte()];
+	    Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "MetaLength is " + meta.Length);
+            for (int i = 0; i < meta.Length; i++)
+                meta[i] = reader.Data.ReadMeta(reader);
+            return meta;
+        }
+	
+	// Functions used to serialize and deserialize the object
+	
 	protected override void Read(CelesteNetBinaryReader reader) {
 		SwitchingPlayerID = reader.ReadByte();
 		NewTeam = (TeamManager.Team) reader.ReadByte();
+	    	Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Read ints are " + SwitchingPlayerID + " and " + NewTeam);
+		for (int i = 0; i < 6; ++i) {
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Read waste-int is " + reader.Read7BitEncodedInt());
+		}
 	}
 
 	protected override void Write(CelesteNetBinaryWriter writer) {

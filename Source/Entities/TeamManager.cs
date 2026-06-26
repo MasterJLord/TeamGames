@@ -14,11 +14,12 @@ namespace Celeste.Mod.practiceMod.Entities;
 public static class TeamManager {
 
 	public enum Team {
-		RED,
-		BLUE,
-		GREEN,
-		YELLOW,
-		NONE
+		UNSET = -1,
+		NONE = 0,
+		RED = 1,
+		YELLOW = 2,
+		GREEN = 3,
+		BLUE = 4,
 	}
 
 	private static Dictionary<uint, Team> playerTeamAssignments = new();
@@ -70,6 +71,7 @@ public static class TeamManager {
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
 		// Updates the local player's team remotely
 		DataTeamSwitchEvent packet = new DataTeamSwitchEvent {
+			Player = clientContext.Client.PlayerInfo,
 			SwitchingPlayerID = (uint) localPlayerID,
 			NewTeam = newTeam
 		};
@@ -92,22 +94,20 @@ public static class TeamManager {
 	// Function used to get access to the client context
 	public static void GetClientContext(CelesteNetClientContext context) {
 		clientContext = context;
-		CelesteNetClient client = context.Client;
-		// TODO: data doesn't seem to exist when the client is created; fix this
-		DataContext data = client.Data;
+		DataContext data = context.Client.Data;
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataUnparsed>(Handle);
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
-		Logger.Log(LogLevel.Debug, "PracticeMod/TeamManager", "ID is " + data.DataTypeToID[typeof(DataTeamSwitchEvent)]);
+		Logger.Log(LogLevel.Debug, "PracticeMod/TeamManager", "ID is " + data.DataTypeToID[typeof(DataTeamSwitchEvent)] + " and type is " + data.IDToDataType[data.DataTypeToID[typeof(DataTeamSwitchEvent)]]);
 		// TODO: fetch teams information from the server when joining
 	}
 
 	// Updates the remote players' teams locally
 	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + data.SwitchingPlayerID + " is now " + data.NewTeam + ")");
 		if (GetTeam(data.SwitchingPlayerID) == data.NewTeam) {
 			return;
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + localPlayerID + " is now " + data.NewTeam + ")");
 		OnRemotePlayerSwitched(data.SwitchingPlayerID, data.NewTeam);
 		playerTeamAssignments[data.SwitchingPlayerID] = data.NewTeam;
 	}

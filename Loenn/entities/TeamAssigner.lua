@@ -6,7 +6,7 @@ local TeamAssigner = {
         {
             name = "normal",
             data = {
-                sampleProperty = 0,
+                Team = 0,
             },
         },
     },
