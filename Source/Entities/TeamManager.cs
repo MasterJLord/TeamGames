@@ -11,9 +11,11 @@ using Celeste.Mod.CelesteNet.Client.Entities;
 
 namespace Celeste.Mod.practiceMod.Entities;
 
-public static class TeamManager {
+public static class TeamManager 
+{
 
-	public enum Team {
+	public enum Team 
+	{
 		UNSET = -1,
 		NONE = 0,
 		RED = 1,
@@ -23,7 +25,8 @@ public static class TeamManager {
 	}
 
 	private static Dictionary<uint, Team> playerTeamAssignments = new();
-	private static uint? localPlayerID {
+	private static uint? localPlayerID 
+	{
 		get {
 			return clientContext?.Client.PlayerInfo.ID;
 		}
@@ -33,6 +36,15 @@ public static class TeamManager {
 	public delegate void TeamSwitchHandler(uint playerID, Team newTeam);
 	public static event TeamSwitchHandler LocalPlayerSwitched;
 	public static event TeamSwitchHandler RemotePlayerSwitched;
+	
+	public static Dictionary<Team, Color> TeamColors = new Dictionary<Team, Color>() 
+	{
+		[Team.RED] = Color.Red,
+		[Team.GREEN] = Color.Green,
+		[Team.BLUE] = Color.Blue,
+		[Team.YELLOW] = Color.Yellow,
+		[Team.NONE] = Color.White
+	};
 
 	public static Team GetTeam(Actor player, Team defaultTeam = Team.NONE) {
 		if (player is Player) {
@@ -96,23 +108,18 @@ public static class TeamManager {
 		clientContext = context;
 		DataContext data = context.Client.Data;
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
-		data.RegisterHandler<DataUnparsed>(Handle);
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
-		Logger.Log(LogLevel.Debug, "PracticeMod/TeamManager", "ID is " + data.DataTypeToID[typeof(DataTeamSwitchEvent)] + " and type is " + data.IDToDataType[data.DataTypeToID[typeof(DataTeamSwitchEvent)]]);
 		// TODO: fetch teams information from the server when joining
 	}
 
 	// Updates the remote players' teams locally
 	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + data.SwitchingPlayerID + " is now " + data.NewTeam + ")");
 		if (GetTeam(data.SwitchingPlayerID) == data.NewTeam) {
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Remote player's team is not being switched to their current team (" + data.SwitchingPlayerID + " is still " + data.NewTeam + ")");
 			return;
 		}
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + data.SwitchingPlayerID + " is now " + data.NewTeam + ")");
 		OnRemotePlayerSwitched(data.SwitchingPlayerID, data.NewTeam);
 		playerTeamAssignments[data.SwitchingPlayerID] = data.NewTeam;
-	}
-
-	private static void Handle(CelesteNetConnection con, DataUnparsed data) {
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Unparsed data received");
 	}
 }

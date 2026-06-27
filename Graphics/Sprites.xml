@@ -7,4 +7,20 @@
       <Anim id="hit" path="idle" frames="34-42" delay="0.06" goto="off"/>
       <Loop id="off" path="idle" frames="42" delay="0.06"/>
     </PushBumper>
+    <TeamAssignerRed path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+	    <Loop id="idleNonMember" path="red" frames="0"/>
+	    <Loop id="idleIsMember" path="red" frames="1"/>
+    </TeamAssignerRed>
+    <TeamAssignerYellow path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+	    <Loop id="idleNonMember" path="yellow" frames="0"/>
+	    <Loop id="idleIsMember" path="yellow" frames="1"/>
+    </TeamAssignerYellow>
+    <TeamAssignerBlue path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+	    <Loop id="idleNonMember" path="blue" frames="0"/>
+	    <Loop id="idleIsMember" path="blue" frames="1"/>
+    </TeamAssignerBlue>
+    <TeamAssignerGreen path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+	    <Loop id="idleNonMember" path="green" frames="0"/>
+	    <Loop id="idleIsMember" path="green" frames="1"/>
+    </TeamAssignerGreen>
 </Sprites>
