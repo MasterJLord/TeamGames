@@ -24,19 +24,6 @@ public static class TeamManager
 		BLUE = 4,
 	}
 
-	private static Dictionary<uint, Team> playerTeamAssignments = new();
-	private static uint? localPlayerID 
-	{
-		get {
-			return clientContext?.Client.PlayerInfo.ID;
-		}
-	}
-	private static CelesteNetClientContext clientContext;
-
-	public delegate void TeamSwitchHandler(uint playerID, Team newTeam);
-	public static event TeamSwitchHandler LocalPlayerSwitched;
-	public static event TeamSwitchHandler RemotePlayerSwitched;
-	
 	public static Dictionary<Team, Color> TeamColors = new Dictionary<Team, Color>() 
 	{
 		[Team.RED] = Color.Red,
@@ -46,7 +33,23 @@ public static class TeamManager
 		[Team.NONE] = Color.White
 	};
 
-	public static Team GetTeam(Actor player, Team defaultTeam = Team.NONE) {
+	private static Dictionary<uint, Team> playerTeamAssignments = new();
+	private static uint? localPlayerID 
+	{
+		get {
+			return clientContext?.Client.PlayerInfo.ID;
+		}
+	}
+	private static CelesteNetClientContext clientContext;
+	private static List<uint> missingPlayerIDs = new();
+	private static List<uint> missingPlayerTimes = new();
+
+	public delegate void TeamSwitchHandler(uint playerID, Team newTeam);
+	public static event TeamSwitchHandler LocalPlayerSwitched;
+	public static event TeamSwitchHandler RemotePlayerSwitched;
+	
+
+	public static Team GetTeam(Actor player, Team defaultTeam = Team.UNSET) {
 		if (player is Player) {
 			if (localPlayerID == null) {
 				return defaultTeam;
@@ -63,7 +66,7 @@ public static class TeamManager
 		return defaultTeam;
 	}
 
-	public static Team GetTeam(uint playerID, Team defaultTeam = Team.NONE) {
+	public static Team GetTeam(uint playerID, Team defaultTeam = Team.UNSET) {
 		if (!playerTeamAssignments.ContainsKey(playerID)) {
 			return defaultTeam;
 		}
@@ -108,18 +111,53 @@ public static class TeamManager
 		clientContext = context;
 		DataContext data = context.Client.Data;
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
+		data.RegisterHandler<DataTeamsRequest>(Handle);
+		data.RegisterHandler<DataTeamsList>(Handle);
+		clientContext.Client.Send(new DataTeamsRequest() {Player = clientContext.Client.PlayerInfo});
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
-		// TODO: fetch teams information from the server when joining
 	}
 
 	// Updates the remote players' teams locally
 	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
-		if (GetTeam(data.SwitchingPlayerID) == data.NewTeam) {
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Remote player's team is not being switched to their current team (" + data.SwitchingPlayerID + " is still " + data.NewTeam + ")");
+		SetTeamRemote(data.SwitchingPlayerID, data.NewTeam);
+	}
+
+	private static void SetTeamRemote(uint id, Team newTeam) {
+		if (GetTeam(id) == newTeam) {
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Remote player's team is not being switched to their current team (" + id + " is still " + newTeam + ")");
 			return;
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + data.SwitchingPlayerID + " is now " + data.NewTeam + ")");
-		OnRemotePlayerSwitched(data.SwitchingPlayerID, data.NewTeam);
-		playerTeamAssignments[data.SwitchingPlayerID] = data.NewTeam;
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + id + " is now " + newTeam + ")");
+		OnRemotePlayerSwitched(id, newTeam);
+		playerTeamAssignments[id] = newTeam;
+	}
+
+	// Syncs all team data with other players in the server when a player joins a server
+	private static void Handle(CelesteNetConnection con, DataTeamsRequest data) {
+		// Only respond to the request if I have the lowest ID, so that multiple clients are not sending redundant information
+		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
+		foreach (DataPlayerInfo player in playerList) {
+			if (player.ID < localPlayerID) {
+				return;
+			}
+		}
+		// Build a response data packet with the team data of all players who are still in the server is contained
+		DataTeamsList packet = new() {Player = clientContext.Client.PlayerInfo};
+		foreach (DataPlayerInfo player in playerList) {
+			if (GetTeam(player.ID) == Team.UNSET) {
+				continue;
+			}
+			packet.PlayerAssignments[player.ID] = GetTeam(player.ID);
+		}
+		clientContext.Client.Send(packet);
+
+	}
+
+	private static void Handle(CelesteNetConnection con, DataTeamsList data) {
+		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
+		foreach (uint playerID in ids) {
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Receiving teams list: player " + playerID + " is " + data.PlayerAssignments[playerID]);
+			SetTeamRemote(playerID, data.PlayerAssignments[playerID]);
+		}
 	}
 }
