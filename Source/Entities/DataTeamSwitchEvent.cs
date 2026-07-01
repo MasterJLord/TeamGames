@@ -35,13 +35,7 @@ public class DataTeamSwitchEvent : DataType<DataTeamSwitchEvent> {
         public override void FixupMeta(DataContext ctx) {
             Player = Get<MetaPlayerUpdate>(ctx);
         }
-        protected override MetaType[] ReadMeta(CelesteNetBinaryReader reader) {
-            MetaType[] meta = new MetaType[reader.ReadByte()];
-            for (int i = 0; i < meta.Length; i++)
-                meta[i] = reader.Data.ReadMeta(reader);
-            return meta;
-        }
-	
+
 	// Functions used to serialize and deserialize the object
 	
 	protected override void Read(CelesteNetBinaryReader reader) {
@@ -51,7 +45,7 @@ public class DataTeamSwitchEvent : DataType<DataTeamSwitchEvent> {
 
 	protected override void Write(CelesteNetBinaryWriter writer) {
 		writer.Write(SwitchingPlayerID);
-		writer.Write((byte) NewTeam);
+		writer.Write((Byte) NewTeam);
 	}
 
 }

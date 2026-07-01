@@ -113,9 +113,21 @@ public static class TeamManager
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataTeamsRequest>(Handle);
 		data.RegisterHandler<DataTeamsList>(Handle);
-		clientContext.Client.Send(new DataTeamsRequest() {Player = clientContext.Client.PlayerInfo});
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
 	}
+
+	public static void OnEnterLobby(Session session, bool fromSaveData) {
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", clientContext.Client == null ? "true" : "false");
+		
+		clientContext.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", "Requested teams info");
+		// TODO: this is being called too early, and the request is not being received
+	}
+
+	public static void OnExitLobby(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
+		playerTeamAssignments = new();
+	}
+
 
 	// Updates the remote players' teams locally
 	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
@@ -134,6 +146,7 @@ public static class TeamManager
 
 	// Syncs all team data with other players in the server when a player joins a server
 	private static void Handle(CelesteNetConnection con, DataTeamsRequest data) {
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Received request for teams");
 		// Only respond to the request if I have the lowest ID, so that multiple clients are not sending redundant information
 		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
 		foreach (DataPlayerInfo player in playerList) {
@@ -141,8 +154,9 @@ public static class TeamManager
 				return;
 			}
 		}
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Responding to request for teams");
 		// Build a response data packet with the team data of all players who are still in the server is contained
-		DataTeamsList packet = new() {Player = clientContext.Client.PlayerInfo};
+		DataTeamsList packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
 		foreach (DataPlayerInfo player in playerList) {
 			if (GetTeam(player.ID) == Team.UNSET) {
 				continue;

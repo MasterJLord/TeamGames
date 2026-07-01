@@ -39,6 +39,7 @@ public class DataTeamsList : DataType<DataTeamsList> {
 	
 	protected override void Read(CelesteNetBinaryReader reader) {
 		int count = reader.ReadInt32();
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", "Got a teams list with " + count + " players in it");
 		for (int i = 0; i < count; ++i) {
 			uint playerID = (uint) reader.ReadInt32();
 			TeamManager.Team team = (TeamManager.Team) reader.ReadByte();

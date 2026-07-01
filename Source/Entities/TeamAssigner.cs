@@ -65,4 +65,5 @@ public class TeamAssigner : Solid {
 		TeamManager.SetTeam(MyTeam);
 		return DashCollisionResults.NormalCollision;
 	}
+
 }

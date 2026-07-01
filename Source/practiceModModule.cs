@@ -30,6 +30,9 @@ public class practiceModModule : EverestModule {
     public override void Load() {
 	Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Loaded");
 	CelesteNetClientContext.OnInit += TeamManager.GetClientContext;
+	CelesteNetClientContext.OnInit += SyncedHoldable.GetClientContext;
+	Everest.Events.Level.OnEnter += TeamManager.OnEnterLobby;
+	Everest.Events.Level.OnExit += TeamManager.OnExitLobby;
     }
 
     public override void Unload() {
