@@ -23,4 +23,16 @@
 	    <Loop id="idleNonMember" path="green" frames="0"/>
 	    <Loop id="idleIsMember" path="green" frames="1"/>
     </TeamAssignerGreen>
+    <TeamBallRed path="objects/practiceMod/TeamBall/" start="idle">
+	    <Loop id="idle" path="red" frames="0"/>
+    </TeamBallRed>
+    <TeamBallYellow path="objects/practiceMod/TeamBall/" start="idle">
+	    <Loop id="idle" path="yellow" frames="0"/>
+    </TeamBallYellow>
+    <TeamBallGreen path="objects/practiceMod/TeamBall/" start="idle">
+	    <Loop id="idle" path="green" frames="0"/>
+    </TeamBallGreen>
+    <TeamBallBlue path="objects/practiceMod/TeamBall/" start="idle">
+	    <Loop id="idle" path="blue" frames="0"/>
+    </TeamBallBlue>
 </Sprites>
