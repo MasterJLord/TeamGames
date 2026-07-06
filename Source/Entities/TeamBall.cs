@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
+using Celeste.Mod.CelesteNet;
 
 namespace Celeste.Mod.practiceMod.Entities;
 
@@ -29,7 +30,7 @@ public class TeamBall : SyncedHoldable {
 				break;
 		}
 		base.Collider = new Hitbox(8f, 10f, -4f, -10f);
-		TheoCrystal.P_Impact = new ParticleType
+		P_Impact = new ParticleType
 		{
 			Color = TeamManager.TeamColors[MyTeam],
 			Size = 1f,
@@ -43,4 +44,40 @@ public class TeamBall : SyncedHoldable {
 		};
 
 	}
+
+	public override void Added(Scene scene) 
+	{
+		base.Added(scene);
+		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
+		{
+			Hold.cannotHoldTimer = Single.PositiveInfinity;
+		}
+		TeamManager.LocalPlayerSwitched += handleSwitch;
+	}
+
+	public override void Removed(Scene scene)
+	{
+		base.Removed(scene);
+		TeamManager.LocalPlayerSwitched -= handleSwitch;
+	}
+
+	private void handleSwitch(uint localPlayerID, TeamManager.Team newTeam) 
+	{
+		if (MyTeam == newTeam) 
+		{
+			Hold.cannotHoldTimer = 0;
+		} else if (TeamManager.GetTeam(localPlayerID) == MyTeam) {
+			Hold.cannotHoldTimer = Single.PositiveInfinity;
+		}
+	}
+
+	protected override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
+	{
+		base.Handle(con, data);
+		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
+		{
+			Hold.cannotHoldTimer = Single.PositiveInfinity;
+		}
+	}
+
 }

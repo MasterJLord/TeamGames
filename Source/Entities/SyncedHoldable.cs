@@ -6,6 +6,7 @@ using Monocle;
 using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet.Client;
+using Celeste.Mod.CelesteNet.Client.Entities;
 
 namespace Celeste.Mod.practiceMod.Entities;
 
@@ -30,12 +31,12 @@ public abstract class SyncedHoldable : Actor
 	protected Sprite sprite;
 	protected Collision onCollideH;
 	protected Collision onCollideV;
-	private float deadTimer;
-	private Level level;
-	private float noGravityTimer;
-	private Vector2 prevLiftSpeed;
-	private float hardVerticalHitSoundCooldown;
-	private ParticleType P_Impact;
+	protected float deadTimer;
+	protected Level level;
+	protected float noGravityTimer;
+	protected Vector2 prevLiftSpeed;
+	protected float hardVerticalHitSoundCooldown;
+	protected ParticleType P_Impact;
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public SyncedHoldable(EntityData data, Vector2 offset)
@@ -45,6 +46,7 @@ public abstract class SyncedHoldable : Actor
 		onCollideV = OnCollideV;
 		SpawnPosition = Position;
 		base.Collider = new Hitbox(8f, 10f, -4f, -10f);
+
 		Add(Hold = new Holdable(0.1f));
 		Hold.PickupCollider = new Hitbox(16f, 22f, -8f, -16f);
 		Hold.SlowFall = false;
@@ -81,47 +83,83 @@ public abstract class SyncedHoldable : Actor
 	public virtual void HitSeeker(Seeker seeker) {
 	}
 
-	public override void Added(Scene scene) {
+	public override void Added(Scene scene) 
+	{
 		base.Added(scene);
 		level = SceneAs<Level>();
-		if (!owners.ContainsKey(base.SourceId.ID)) {
+		if (!owners.ContainsKey(base.SourceId.ID)) 
+		{
 			DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
 			uint minID = playerList[0].ID;
-			foreach (DataPlayerInfo player in playerList) {
-				if (player.ID < minID) {
+			foreach (DataPlayerInfo player in playerList) 
+			{
+				if (player.ID < minID) 
+				{
 					minID = player.ID;
 				}
 			}
 			owners[base.SourceId.ID] = minID;
 		}
+
 		DataContext data = clientContext.Client.Data;
+		// data.RegisterHandlersIn(this);
+		data.RegisterHandler<DataHoldableUpdate>(Handle);
 		data.RegisterHandler<DataSession>(Handle);
+	}
+
+	public override void Removed(Scene scene) 
+	{
+		DataContext data = clientContext.Client.Data;
+		data.UnregisterHandlersIn(this);
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override void Update()
 	{
 		base.Update();
-		if (base.Scene.OnInterval(0.05f)) {
+		updateGivenTime(Engine.DeltaTime);
+		if (base.Scene.OnInterval(0.1f)) 
+		{
+			if (Hold.IsHeld) 
+			{
+				owners[base.SourceId.ID] = (uint) localPlayerID;
+			}
 			SendUpdate();
 		}
-		updateGivenTime(Engine.DeltaTime);
 	}
 
-	protected virtual void updateGivenTime(float time, bool isCatchup = false) {
+	protected virtual void updateGivenTime(float time, bool isCatchup = false) 
+	{
 		if (deadTimer > 0f)
 		{
 			deadTimer -= time;
-			if (deadTimer <= 0) {
+			if (deadTimer <= 0) 
+			{
 				Respawn();
 				updateGivenTime (deadTimer * -1);
 			}
 			return;
 		}
-		if (!isCatchup) {
+		if (!isCatchup) 
+		{
 			hardVerticalHitSoundCooldown -= time;
 		}
 		base.Depth = 100;
+		if (IsHeldRemote) 
+		{
+			foreach (Ghost ghost in Scene.Tracker.GetEntities<Ghost>())
+			{
+				uint? id = ghost.PlayerInfo?.ID;
+				if (id != owners[base.SourceId.ID]) 
+				{
+					continue;
+				}
+				Player player = Scene.Tracker.GetEntity<Player>();
+				Position = (Vector2) (ghost?.Position + player?.carryOffset + Vector2.UnitY * ghost?.Sprite.CarryYOffset);
+				Hold.CheckAgainstColliders();
+				return;
+			}
+		}
 		if (Hold.IsHeld)
 		{
 			prevLiftSpeed = Vector2.Zero;
@@ -143,18 +181,14 @@ public abstract class SyncedHoldable : Actor
 					{
 						noGravityTimer = 0.15f;
 					}
-				}
-				else
-				{
+				} else {
 					prevLiftSpeed = liftSpeed;
 					if (liftSpeed.Y < 0f && Speed.Y < 0f)
 					{
 						Speed.Y = 0f;
 					}
 				}
-			}
-			else if (Hold.ShouldHaveGravity)
-			{
+			} else if (Hold.ShouldHaveGravity) {
 				float num = 800f;
 				if (Math.Abs(Speed.Y) <= 30f)
 				{
@@ -315,21 +349,15 @@ public abstract class SyncedHoldable : Actor
 			direction = (float)Math.PI;
 			position = new Vector2(base.Right, base.Y - 4f);
 			positionRange = Vector2.UnitY * 6f;
-		}
-		else if (dir.X < 0f)
-		{
+		} else if (dir.X < 0f) {
 			direction = 0f;
 			position = new Vector2(base.Left, base.Y - 4f);
 			positionRange = Vector2.UnitY * 6f;
-		}
-		else if (dir.Y > 0f)
-		{
+		} else if (dir.Y > 0f) {
 			direction = -(float)Math.PI / 2f;
 			position = new Vector2(base.X, base.Bottom);
 			positionRange = Vector2.UnitX * 6f;
-		}
-		else
-		{
+		} else {
 			direction = (float)Math.PI / 2f;
 			position = new Vector2(base.X, base.Top);
 			positionRange = Vector2.UnitX * 6f;
@@ -390,13 +418,17 @@ public abstract class SyncedHoldable : Actor
 		{
 			noGravityTimer = 0.1f;
 		}
+		owners[base.SourceId.ID] = (uint) localPlayerID;
 		SendUpdate();
 	}
 
 	private void SendUpdate() {
 		if (owners[base.SourceId.ID] != localPlayerID) {
+			Console.WriteLine("skipping");
+
 			return;
 		}
+		Console.WriteLine("updating");
 		DataHoldableUpdate data = new DataHoldableUpdate {
 			SenderID = (uint) localPlayerID,
 			EntityID = base.SourceId.ID,
@@ -411,7 +443,7 @@ public abstract class SyncedHoldable : Actor
 	// Function used to get access to the client context
 	public static void GetClientContext(CelesteNetClientContext context) {
 		clientContext = context;
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
+		Logger.Log(LogLevel.Debug, "practiceMod/SyncedHoldable", "Got client context");
 	}
 
 	protected virtual void Handle(CelesteNetConnection con, DataSession session) {
@@ -421,9 +453,13 @@ public abstract class SyncedHoldable : Actor
 	}
 
 	protected virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) {
+		Logger.Log(LogLevel.Debug, "practiceMod/SyncedHoldabe", "Crystal " + data.EntityID + " is moved to " + data.Position);
 		if (base.SourceId.ID != data.EntityID) {
+			Logger.Log(LogLevel.Debug, "practiceMod/SyncedHoldable", "I am " + base.SourceId.ID);
 			return;
 		}
+		Logger.Log(LogLevel.Debug, "practiceMod/SyncedHoldable", "I am " + base.SourceId.ID + "; moving");
+
 		owners[data.EntityID] = data.SenderID;
 		// Prevents the holdable from being held by two players at once
 		if (data.IsHeld) 
@@ -435,6 +471,6 @@ public abstract class SyncedHoldable : Actor
 		IsHeldRemote = data.IsHeld;
 		Position = data.Position;
 		Speed = data.Velocity;
-		updateGivenTime(Scene.TimeActive - data.SentTime, true);
+		// updateGivenTime(Scene.TimeActive - data.SentTime, true);
 	}
 }

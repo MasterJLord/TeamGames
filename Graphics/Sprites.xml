@@ -1,38 +1,42 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Sprites>
-    <PushBumper path="objects/practiceMod/PushBumper/" start="idle">
-        <Justify x="0.5" y="0.5" />
-      <Anim id="on" path="idle" frames="42-44" delay="0.06" goto="idle"/>
-      <Loop id="idle" path="idle" frames="0-33" delay="0.06"/>
-      <Anim id="hit" path="idle" frames="34-42" delay="0.06" goto="off"/>
-      <Loop id="off" path="idle" frames="42" delay="0.06"/>
-    </PushBumper>
-    <TeamAssignerRed path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
-	    <Loop id="idleNonMember" path="red" frames="0"/>
-	    <Loop id="idleIsMember" path="red" frames="1"/>
-    </TeamAssignerRed>
-    <TeamAssignerYellow path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
-	    <Loop id="idleNonMember" path="yellow" frames="0"/>
-	    <Loop id="idleIsMember" path="yellow" frames="1"/>
-    </TeamAssignerYellow>
-    <TeamAssignerBlue path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
-	    <Loop id="idleNonMember" path="blue" frames="0"/>
-	    <Loop id="idleIsMember" path="blue" frames="1"/>
-    </TeamAssignerBlue>
-    <TeamAssignerGreen path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
-	    <Loop id="idleNonMember" path="green" frames="0"/>
-	    <Loop id="idleIsMember" path="green" frames="1"/>
-    </TeamAssignerGreen>
-    <TeamBallRed path="objects/practiceMod/TeamBall/" start="idle">
-	    <Loop id="idle" path="red" frames="0"/>
-    </TeamBallRed>
-    <TeamBallYellow path="objects/practiceMod/TeamBall/" start="idle">
-	    <Loop id="idle" path="yellow" frames="0"/>
-    </TeamBallYellow>
-    <TeamBallGreen path="objects/practiceMod/TeamBall/" start="idle">
-	    <Loop id="idle" path="green" frames="0"/>
-    </TeamBallGreen>
-    <TeamBallBlue path="objects/practiceMod/TeamBall/" start="idle">
-	    <Loop id="idle" path="blue" frames="0"/>
-    </TeamBallBlue>
+	<PushBumper path="objects/practiceMod/PushBumper/" start="idle">
+		<Justify x="0.5" y="0.5" />
+		<Anim id="on" path="idle" frames="42-44" delay="0.06" goto="idle"/>
+		<Loop id="idle" path="idle" frames="0-33" delay="0.06"/>
+		<Anim id="hit" path="idle" frames="34-42" delay="0.06" goto="off"/>
+		<Loop id="off" path="idle" frames="42" delay="0.06"/>
+	</PushBumper>
+	<TeamAssignerRed path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+		<Loop id="idleNonMember" path="red" frames="0"/>
+		<Loop id="idleIsMember" path="red" frames="1"/>
+	</TeamAssignerRed>
+	<TeamAssignerYellow path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+		<Loop id="idleNonMember" path="yellow" frames="0"/>
+		<Loop id="idleIsMember" path="yellow" frames="1"/>
+	</TeamAssignerYellow>
+	<TeamAssignerBlue path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+		<Loop id="idleNonMember" path="blue" frames="0"/>
+		<Loop id="idleIsMember" path="blue" frames="1"/>
+	</TeamAssignerBlue>
+	<TeamAssignerGreen path="objects/practiceMod/TeamAssigner/" start="idleNonMember">
+		<Loop id="idleNonMember" path="green" frames="0"/>
+		<Loop id="idleIsMember" path="green" frames="1"/>
+	</TeamAssignerGreen>
+	<TeamBallRed path="objects/practiceMod/TeamBall/" start="idle">
+		<Origin x="10" y="22"/>
+		<Loop id="idle" path="red" frames="0"/>
+	</TeamBallRed>
+	<TeamBallYellow path="objects/practiceMod/TeamBall/" start="idle">
+		<Origin x="10" y="22"/>
+		<Loop id="idle" path="yellow" frames="0"/>
+	</TeamBallYellow>
+	<TeamBallGreen path="objects/practiceMod/TeamBall/" start="idle">
+		<Origin x="10" y="22"/>
+		<Loop id="idle" path="green" frames="0"/>
+	</TeamBallGreen>
+	<TeamBallBlue path="objects/practiceMod/TeamBall/" start="idle">
+		<Origin x="10" y="22"/>
+		<Loop id="idle" path="blue" frames="0"/>
+	</TeamBallBlue>
 </Sprites>
