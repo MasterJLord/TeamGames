@@ -12,6 +12,8 @@ namespace Celeste.Mod.practiceMod.Entities;
 public class TeamBall : SyncedHoldable {
 
 	public TeamManager.Team MyTeam;
+	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
+	private float droppedTime = 0;
 
 	public TeamBall(EntityData data, Vector2 offset) : base(data, offset) {
 		MyTeam = (TeamManager.Team) data.Float("Team");
@@ -70,9 +72,27 @@ public class TeamBall : SyncedHoldable {
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
 		}
 	}
+	
+	protected override void OnRelease(Vector2 force)
+	{
+		base.OnRelease(force);
+		drop();
+	}
+
+	protected override void OnPickup()
+	{
+		base.OnPickup();
+		droppedTime = -1;
+	}
 
 	protected override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
 	{
+		if (data.IsHeld)
+		{
+			droppedTime = -1;
+		} else if (IsHeldRemote) {
+			drop();
+		}
 		base.Handle(con, data);
 		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
 		{
@@ -80,4 +100,23 @@ public class TeamBall : SyncedHoldable {
 		}
 	}
 
+	private void drop() 
+	{
+		droppedTime = DROP_TIME;
+	}
+
+	protected override void updateGivenTime(float time, bool isCatchup = false) 
+	{
+		if (droppedTime >= 0)
+		{
+			droppedTime -= time;
+			if (droppedTime < 0) 
+			{
+				Die();
+				updateGivenTime(-1 * droppedTime);
+				return;
+			}
+		}
+		base.updateGivenTime(time);
+	}
 }

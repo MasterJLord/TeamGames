@@ -117,9 +117,9 @@ public static class TeamManager
 	}
 
 	public static void OnEnterLobby(Session session, bool fromSaveData) {
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", clientContext.Client == null ? "true" : "false");
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", clientContext?.Client == null ? "true" : "false");
 		
-		clientContext.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
+		clientContext?.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", "Requested teams info");
 		// TODO: this is being called too early, and the request is not being received
 	}

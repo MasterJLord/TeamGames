@@ -18,6 +18,7 @@ public class TeamControlledZone : Trigger {
 	public TeamControlledZone(EntityData data, Vector2 offset) 
 		: base(data, offset) {
 		MyTeam = (TeamManager.Team) data.Float("Team");
+		Visible = true;
 	}
 
 	// Keeps the boolean representing whether the local player can be killed in this zone and the list of remote players who can kill them up to date
