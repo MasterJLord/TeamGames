@@ -1,7 +1,7 @@
 local TeamBall = {
 	name = "practiceMod/TeamBall",
 	depth = -8000,
-	texture = "objects/practiceMod/PushBumper/Idle20",
+	texture = "objects/practiceMod/TeamBall/red0.png",
 	placements = {
 		{
 			name = "Team Ball (red)",

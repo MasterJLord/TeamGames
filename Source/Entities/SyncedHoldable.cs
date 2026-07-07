@@ -375,7 +375,7 @@ public abstract class SyncedHoldable : Actor
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
-	private void ImpactParticles(Vector2 dir)
+	protected void ImpactParticles(Vector2 dir)
 	{
 		float direction;
 		Vector2 position;
@@ -424,13 +424,13 @@ public abstract class SyncedHoldable : Actor
 	{
 		sprite.Visible = false;
 		deadTimer = STAY_DEAD_TIME; 
+		Position = SpawnPosition;
 		Hold.cannotHoldTimer = Single.PositiveInfinity;
 	}
 
 	protected virtual void Respawn() 
 	{
 		sprite.Visible = true;
-		Position = SpawnPosition;
 		Hold.cannotHoldTimer = 0;
 	}
 
@@ -460,7 +460,7 @@ public abstract class SyncedHoldable : Actor
 		SendUpdate();
 	}
 
-	private void SendUpdate() {
+	protected void SendUpdate() {
 		if (clientContext == null)
 		{
 			return;

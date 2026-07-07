@@ -174,4 +174,18 @@ public static class TeamManager
 			SetTeamRemote(playerID, data.PlayerAssignments[playerID]);
 		}
 	}
+
+	public static void ScorePoint(Scene scene, TeamManager.Team WinningTeam)
+	{
+		if (GetTeam((uint) localPlayerID) != WinningTeam)
+		{
+			Player player = scene.Tracker.GetEntity<Player>();
+			if (player == null)
+			{
+				Logger.Log(LogLevel.Warn, "practiceMod/TeamManager", "Losing player was not found");
+				return;
+			}
+			player.Die(player.Position);
+		}
+	}
 }

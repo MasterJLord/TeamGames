@@ -9,15 +9,18 @@ using Celeste.Mod.CelesteNet;
 namespace Celeste.Mod.practiceMod.Entities;
 
 [CustomEntity("practiceMod/TeamBall")]
-public class TeamBall : SyncedHoldable {
+public class TeamBall : SyncedHoldable 
+{
 
 	public TeamManager.Team MyTeam;
 	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
 	private float droppedTime = 0;
 
-	public TeamBall(EntityData data, Vector2 offset) : base(data, offset) {
+	public TeamBall(EntityData data, Vector2 offset) : base(data, offset) 
+	{
 		MyTeam = (TeamManager.Team) data.Float("Team");
-		switch (MyTeam) {
+		switch (MyTeam) 
+		{
 			case TeamManager.Team.RED:
 				Add(sprite = GFX.SpriteBank.Create("TeamBallRed"));
 				break;
@@ -118,5 +121,23 @@ public class TeamBall : SyncedHoldable {
 			}
 		}
 		base.updateGivenTime(time);
+	}
+
+	public override void Update()
+	{
+		base.Update();
+		foreach (TeamBallGoal goal in Scene.Tracker.GetEntities<TeamBallGoal>())
+		{
+			if (goal.MyTeam != MyTeam)
+			{
+				continue;
+			}
+			if (CollideCheck(goal))
+			{
+				TeamManager.ScorePoint(Scene, MyTeam);
+				SendUpdate();
+				Die();
+			}
+		}
 	}
 }
