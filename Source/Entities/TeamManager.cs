@@ -49,16 +49,21 @@ public static class TeamManager
 	public static event TeamSwitchHandler RemotePlayerSwitched;
 	
 
-	public static Team GetTeam(Actor player, Team defaultTeam = Team.UNSET) {
-		if (player is Player) {
-			if (localPlayerID == null) {
+	public static Team GetTeam(Actor player, Team defaultTeam = Team.UNSET) 
+	{
+		if (player is Player) 
+		{
+			if (localPlayerID == null) 
+			{
 				return defaultTeam;
 			}
 			return GetTeam((uint) localPlayerID, defaultTeam);
 		}
-		if (player is Ghost) {
+		if (player is Ghost) 
+		{
 			uint? id = ((Ghost) player).PlayerInfo?.ID;
-			if (id == null) {
+			if (id == null) 
+			{
 				return defaultTeam;
 			}
 			return GetTeam((uint) id);
@@ -66,25 +71,34 @@ public static class TeamManager
 		return defaultTeam;
 	}
 
-	public static Team GetTeam(uint playerID, Team defaultTeam = Team.UNSET) {
-		if (!playerTeamAssignments.ContainsKey(playerID)) {
+	public static Team GetTeam(uint playerID, Team defaultTeam = Team.UNSET) 
+	{
+		if (!playerTeamAssignments.ContainsKey(playerID)) 
+		{
 			return defaultTeam;
 		}
 		return playerTeamAssignments[playerID];
 	}
 
-	public static void SetTeam(Team newTeam = Team.NONE) {
+	public static void SetTeam(Team newTeam = Team.NONE) 
+	{
 		// Updates the local player's team locally
-		if (localPlayerID == null) {
+		if (localPlayerID == null) 
+		{
 			return;
 		}
-		if (GetTeam((uint) localPlayerID) == newTeam) {
+		if (GetTeam((uint) localPlayerID) == newTeam) 
+		{
 			return;
 		}
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
 		OnLocalPlayerSwitched(newTeam);
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
 		// Updates the local player's team remotely
+		if (clientContext == null)
+		{
+			return;
+		}
 		DataTeamSwitchEvent packet = new DataTeamSwitchEvent {
 			Player = clientContext.Client.PlayerInfo,
 			SwitchingPlayerID = (uint) localPlayerID,
@@ -95,19 +109,23 @@ public static class TeamManager
 
 	// Wrapper functions for the events
 	
-	private static void OnLocalPlayerSwitched(Team newTeam) {
-		if (localPlayerID == null) {
+	private static void OnLocalPlayerSwitched(Team newTeam) 
+	{
+		if (localPlayerID == null) 
+		{
 			return;
 		}
 		LocalPlayerSwitched?.Invoke((uint) localPlayerID, newTeam);
 	}
 
-	private static void OnRemotePlayerSwitched(uint playerID, Team newTeam) {
+	private static void OnRemotePlayerSwitched(uint playerID, Team newTeam) 
+	{
 		RemotePlayerSwitched?.Invoke(playerID, newTeam);
 	}
 
 	// Function used to get access to the client context
-	public static void GetClientContext(CelesteNetClientContext context) {
+	public static void GetClientContext(CelesteNetClientContext context) 
+	{
 		clientContext = context;
 		DataContext data = context.Client.Data;
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
@@ -116,7 +134,8 @@ public static class TeamManager
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
 	}
 
-	public static void OnEnterLobby(Session session, bool fromSaveData) {
+	public static void OnEnterLobby(Session session, bool fromSaveData) 
+	{
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", clientContext?.Client == null ? "true" : "false");
 		
 		clientContext?.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
@@ -124,18 +143,22 @@ public static class TeamManager
 		// TODO: this is being called too early, and the request is not being received
 	}
 
-	public static void OnExitLobby(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
+	public static void OnExitLobby(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) 
+	{
 		playerTeamAssignments = new();
 	}
 
 
 	// Updates the remote players' teams locally
-	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) {
+	private static void Handle(CelesteNetConnection con, DataTeamSwitchEvent data) 
+	{
 		SetTeamRemote(data.SwitchingPlayerID, data.NewTeam);
 	}
 
-	private static void SetTeamRemote(uint id, Team newTeam) {
-		if (GetTeam(id) == newTeam) {
+	private static void SetTeamRemote(uint id, Team newTeam) 
+	{
+		if (GetTeam(id) == newTeam) 
+		{
 			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Remote player's team is not being switched to their current team (" + id + " is still " + newTeam + ")");
 			return;
 		}
@@ -145,20 +168,25 @@ public static class TeamManager
 	}
 
 	// Syncs all team data with other players in the server when a player joins a server
-	private static void Handle(CelesteNetConnection con, DataTeamsRequest data) {
+	private static void Handle(CelesteNetConnection con, DataTeamsRequest data)
+	{
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Received request for teams");
 		// Only respond to the request if I have the lowest ID, so that multiple clients are not sending redundant information
 		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
-		foreach (DataPlayerInfo player in playerList) {
-			if (player.ID < localPlayerID) {
+		foreach (DataPlayerInfo player in playerList)
+		{
+			if (player.ID < localPlayerID)
+			{
 				return;
 			}
 		}
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Responding to request for teams");
 		// Build a response data packet with the team data of all players who are still in the server is contained
 		DataTeamsList packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
-		foreach (DataPlayerInfo player in playerList) {
-			if (GetTeam(player.ID) == Team.UNSET) {
+		foreach (DataPlayerInfo player in playerList)
+		{
+			if (GetTeam(player.ID) == Team.UNSET)
+			{
 				continue;
 			}
 			packet.PlayerAssignments[player.ID] = GetTeam(player.ID);
@@ -167,9 +195,11 @@ public static class TeamManager
 
 	}
 
-	private static void Handle(CelesteNetConnection con, DataTeamsList data) {
+	private static void Handle(CelesteNetConnection con, DataTeamsList data)
+	{
 		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
-		foreach (uint playerID in ids) {
+		foreach (uint playerID in ids)
+		{
 			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Receiving teams list: player " + playerID + " is " + data.PlayerAssignments[playerID]);
 			SetTeamRemote(playerID, data.PlayerAssignments[playerID]);
 		}

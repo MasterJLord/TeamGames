@@ -50,13 +50,15 @@ public class TeamBall : SyncedHoldable
 
 	}
 
-	public override void Added(Scene scene) 
+	public override void Awake(Scene scene) 
 	{
-		base.Added(scene);
-		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
+		base.Awake(scene);
+		if (MyTeam != TeamManager.GetTeam((uint) localPlayerID)) 
 		{
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Initiating lock");
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
 		}
+		Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "My Team is " + MyTeam + " and player's team is " + TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>()));
 		TeamManager.LocalPlayerSwitched += handleSwitch;
 	}
 
@@ -71,8 +73,11 @@ public class TeamBall : SyncedHoldable
 		if (MyTeam == newTeam) 
 		{
 			Hold.cannotHoldTimer = 0;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to team change");
+
 		} else if (TeamManager.GetTeam(localPlayerID) == MyTeam) {
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		}
 	}
 	
@@ -87,6 +92,16 @@ public class TeamBall : SyncedHoldable
 		base.OnPickup();
 		droppedTime = -1;
 	}
+	
+	protected override void Respawn()
+	{
+		base.Respawn();
+		if (TeamManager.GetTeam((uint) localPlayerID) != MyTeam)
+		{
+			Hold.cannotHoldTimer = Single.PositiveInfinity;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking due to respawn");
+		}
+	}
 
 	protected override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
 	{
@@ -100,6 +115,7 @@ public class TeamBall : SyncedHoldable
 		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		}
 	}
 

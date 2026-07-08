@@ -426,12 +426,14 @@ public abstract class SyncedHoldable : Actor
 		deadTimer = STAY_DEAD_TIME; 
 		Position = SpawnPosition;
 		Hold.cannotHoldTimer = Single.PositiveInfinity;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 	}
 
 	protected virtual void Respawn() 
 	{
 		sprite.Visible = true;
 		Hold.cannotHoldTimer = 0;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to respawn");
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
@@ -503,8 +505,10 @@ public abstract class SyncedHoldable : Actor
 		if (data.IsHeld) 
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		} else if (IsHeldRemote) {
 			Hold.cannotHoldTimer = 0.1f;
+			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to remote drop");
 		}
 		IsHeldRemote = data.IsHeld;
 		Position = data.Position;
