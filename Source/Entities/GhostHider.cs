@@ -59,10 +59,14 @@ public class GhostHider : Trigger {
 		{
 			ghostsInZones[(uint) ghostID] = 0;
 		}
+		Logger.Log(LogLevel.Debug, "PracticeMod/GhostHider", "Ghost entered: " + (uint) ghostID + " previously in: " + ghostsInZones[(uint) ghostID]);
 		ghostsInZones[(uint) ghostID]++;
+		internalGhosts.Add(ghost);
 		if (ghostsInZones[(uint) ghostID] == 1)
 		{
+			Logger.Log(LogLevel.Debug, "PracticeMod/GhostHider", "Hiding");
 			ghost.Visible = false;
+			// TODO: this doesn't work; ghosts set themselves to visible every frame. Maybe set their sprite to null instead?
 		}
 	}
 
@@ -71,12 +75,15 @@ public class GhostHider : Trigger {
 		uint? ghostID = (uint) ghost.PlayerInfo?.ID;
 		if (ghostID == null)
 		{
-			Logger.Log(LogLevel.Warn, "PracticeMod/GhostHider", "Entering ghost was missing an ID");
+			Logger.Log(LogLevel.Warn, "PracticeMod/GhostHider", "Exiting ghost was missing an ID");
 			return;
 		}
+		Logger.Log(LogLevel.Debug, "PracticeMod/GhostHider", "Ghost exited: " + (uint) ghostID + " previously in: " + ghostsInZones[(uint) ghostID]);
 		ghostsInZones[(uint) ghostID]--;
+		internalGhosts.Remove(ghost);
 		if (ghostsInZones[(uint) ghostID] == 0)
 		{
+			Logger.Log(LogLevel.Debug, "PracticeMod/GhostHider", "Unhiding");
 			ghost.Visible = true;
 		}
 	}

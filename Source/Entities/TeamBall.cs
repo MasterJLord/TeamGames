@@ -15,6 +15,7 @@ public class TeamBall : SyncedHoldable
 	public TeamManager.Team MyTeam;
 	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
 	private float droppedTime = 0;
+	private bool doPhysics = false;
 
 	public TeamBall(EntityData data, Vector2 offset) : base(data, offset) 
 	{
@@ -53,12 +54,10 @@ public class TeamBall : SyncedHoldable
 	public override void Awake(Scene scene) 
 	{
 		base.Awake(scene);
-		if (MyTeam != TeamManager.GetTeam((uint) localPlayerID)) 
+		if (MyTeam != TeamManager.GetTeam(localPlayerID)) 
 		{
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Initiating lock");
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "My Team is " + MyTeam + " and player's team is " + TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>()));
 		TeamManager.LocalPlayerSwitched += handleSwitch;
 	}
 
@@ -70,14 +69,12 @@ public class TeamBall : SyncedHoldable
 
 	private void handleSwitch(uint localPlayerID, TeamManager.Team newTeam) 
 	{
-		if (MyTeam == newTeam) 
+		if (MyTeam == newTeam && !IsHeldRemote) 
 		{
 			Hold.cannotHoldTimer = 0;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to team change");
 
 		} else if (TeamManager.GetTeam(localPlayerID) == MyTeam) {
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		}
 	}
 	
@@ -91,16 +88,17 @@ public class TeamBall : SyncedHoldable
 	{
 		base.OnPickup();
 		droppedTime = -1;
+		doPhysics = true;
 	}
 	
 	protected override void Respawn()
 	{
 		base.Respawn();
-		if (TeamManager.GetTeam((uint) localPlayerID) != MyTeam)
+		if (TeamManager.GetTeam(localPlayerID) != MyTeam)
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking due to respawn");
 		}
+		doPhysics = false;
 	}
 
 	protected override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
@@ -115,7 +113,6 @@ public class TeamBall : SyncedHoldable
 		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		}
 	}
 
@@ -136,7 +133,12 @@ public class TeamBall : SyncedHoldable
 				return;
 			}
 		}
+		Vector2 prePosition = Position;
 		base.updateGivenTime(time);
+		if (!doPhysics)
+		{
+			Position = prePosition;
+		}
 	}
 
 	public override void Update()

@@ -1,30 +1,33 @@
 local TeamBall = {
 	name = "practiceMod/TeamBall",
 	depth = -8000,
-	texture = "objects/practiceMod/TeamBall/red0.png",
 	placements = {
 		{
 			name = "Team Ball (red)",
 			data = {
-				Team = 1,
+				texture = "objects/practiceMod/TeamBall/red0",
+				Team = 1.0,
 			},
 		},
 		{
 			name = "Team Ball (yellow)",
 			data = {
-				Team = 2,
+				texture = "objects/practiceMod/TeamBall/yellow0",
+				Team = 2.0,
 			},
 		},
 		{
 			name = "Team Ball (green)",
 			data = {
-				Team = 3,
+				texture = "objects/practiceMod/TeamBall/green0",
+				Team = 3.0,
 			},
 		},
 		{
 			name = "Team Ball (blue)",
 			data = {
-				Team = 4,
+				texture = "objects/practiceMod/TeamBall/blue0",
+				Team = 4.0,
 			},
 		},
 	},

@@ -68,7 +68,7 @@ public class TeamControlledZone : Trigger {
 	// Renders the zone
 	
 	public override void Render() {
-		Draw.Rect(Collider, TeamManager.TeamColors[MyTeam] * 0.15f);
+		Draw.Rect(Collider, TeamManager.TeamColors[MyTeam] * 0.075f);
 	}
 }
 

@@ -57,7 +57,7 @@ public static class TeamManager
 			{
 				return defaultTeam;
 			}
-			return GetTeam((uint) localPlayerID, defaultTeam);
+			return GetTeam(localPlayerID, defaultTeam);
 		}
 		if (player is Ghost) 
 		{
@@ -66,18 +66,22 @@ public static class TeamManager
 			{
 				return defaultTeam;
 			}
-			return GetTeam((uint) id);
+			return GetTeam(id, defaultTeam);
 		}
 		return defaultTeam;
 	}
 
-	public static Team GetTeam(uint playerID, Team defaultTeam = Team.UNSET) 
+	public static Team GetTeam(uint? playerID, Team defaultTeam = Team.UNSET) 
 	{
-		if (!playerTeamAssignments.ContainsKey(playerID)) 
+		if (playerID == null)
 		{
 			return defaultTeam;
 		}
-		return playerTeamAssignments[playerID];
+		if (!playerTeamAssignments.ContainsKey((uint) playerID)) 
+		{
+			return defaultTeam;
+		}
+		return playerTeamAssignments[(uint) playerID];
 	}
 
 	public static void SetTeam(Team newTeam = Team.NONE) 
@@ -87,7 +91,7 @@ public static class TeamManager
 		{
 			return;
 		}
-		if (GetTeam((uint) localPlayerID) == newTeam) 
+		if (GetTeam(localPlayerID) == newTeam) 
 		{
 			return;
 		}
@@ -207,7 +211,7 @@ public static class TeamManager
 
 	public static void ScorePoint(Scene scene, TeamManager.Team WinningTeam)
 	{
-		if (GetTeam((uint) localPlayerID) != WinningTeam)
+		if (GetTeam(localPlayerID) != WinningTeam)
 		{
 			Player player = scene.Tracker.GetEntity<Player>();
 			if (player == null)

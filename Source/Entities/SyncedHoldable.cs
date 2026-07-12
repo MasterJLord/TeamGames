@@ -20,6 +20,14 @@ public abstract class SyncedHoldable : Actor
 		}
 	}
 	protected static Dictionary<int, uint> owners = new();
+	protected static float serverTime
+	{
+		get
+		{
+			return 0;
+			// TODO: replace this with a way of getting the actual time synchronized between all players
+		}
+	}
 
 	protected const float UPDATE_INTERVAL = 0.05f;
 	protected const float STAY_DEAD_TIME = 0.2f;
@@ -37,6 +45,7 @@ public abstract class SyncedHoldable : Actor
 	protected Vector2 prevLiftSpeed;
 	protected float hardVerticalHitSoundCooldown;
 	protected ParticleType P_Impact;
+	protected float claimedTime = -1;
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public SyncedHoldable(EntityData data, Vector2 offset)
@@ -103,6 +112,10 @@ public abstract class SyncedHoldable : Actor
 				}
 			}
 			owners[base.SourceId.ID] = minID;
+			if ((minID) == localPlayerID)
+			{
+				claimedTime = serverTime;
+			}
 		}
 
 		DataContext data = clientContext.Client.Data;
@@ -113,6 +126,10 @@ public abstract class SyncedHoldable : Actor
 
 	public override void Removed(Scene scene) 
 	{
+		if (clientContext == null)
+		{
+			return;
+		}
 		DataContext data = clientContext.Client.Data;
 		data.UnregisterHandlersIn(this);
 
@@ -442,6 +459,7 @@ public abstract class SyncedHoldable : Actor
 		Speed = Vector2.Zero;
 		AddTag(Tags.Persistent);
 		owners[base.SourceId.ID] = (uint) localPlayerID;
+		claimedTime = serverTime;
 		SendUpdate();
 	}
 
@@ -459,6 +477,7 @@ public abstract class SyncedHoldable : Actor
 			noGravityTimer = 0.1f;
 		}
 		owners[base.SourceId.ID] = (uint) localPlayerID;
+		claimedTime = serverTime;
 		SendUpdate();
 	}
 
@@ -475,7 +494,7 @@ public abstract class SyncedHoldable : Actor
 		DataHoldableUpdate data = new DataHoldableUpdate {
 			SenderID = (uint) localPlayerID,
 			EntityID = base.SourceId.ID,
-			SentTime = Scene.TimeActive,
+			SentTime = serverTime,
 			IsHeld = Hold.IsHeld,
 			Position = Position,
 			Velocity = Speed
@@ -500,6 +519,12 @@ public abstract class SyncedHoldable : Actor
 			return;
 		}
 
+		// Makes sure that exactly one player is in charge of the holdable at all times
+		if (data.SentTime < claimedTime)
+		{
+			return;
+		}
+
 		owners[data.EntityID] = data.SenderID;
 		// Prevents the holdable from being held by two players at once
 		if (data.IsHeld) 
@@ -513,6 +538,11 @@ public abstract class SyncedHoldable : Actor
 		IsHeldRemote = data.IsHeld;
 		Position = data.Position;
 		Speed = data.Velocity;
-		// updateGivenTime(Scene.TimeActive - data.SentTime, true);
+		if (serverTime < data.SentTime)
+		{
+			Logger.Log(LogLevel.Warn, "practiceMod/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + serverTime);
+		} else {
+			updateGivenTime(serverTime - data.SentTime, true);
+		}
 	}
 }
