@@ -67,6 +67,15 @@ public class TeamBall : SyncedHoldable
 		TeamManager.LocalPlayerSwitched -= handleSwitch;
 	}
 
+	public override bool IsRiding(Solid solid)
+	{
+		if (!doPhysics)
+		{
+			return false;
+		}
+		return base.IsRiding(solid);
+	}
+
 	private void handleSwitch(uint localPlayerID, TeamManager.Team newTeam) 
 	{
 		if (MyTeam == newTeam && !IsHeldRemote) 
