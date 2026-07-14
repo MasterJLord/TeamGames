@@ -1,8 +1,10 @@
-- Name: practiceMod
+- DLL: bin/practiceMod.dll
+  Name: practiceMod
   Version: 0.1.0
-  DLL: bin/practiceMod.dll
   Dependencies:
-    - Name: EverestCore
-      Version: 1.5935.0
     - Name: CelesteNet.Client
       Version: 2.4.2
+    - Name: Everest
+      Version: 1.6397.0
+    - Name: EverestCore
+      Version: 1.5935.0

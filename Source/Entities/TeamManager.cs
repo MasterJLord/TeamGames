@@ -26,17 +26,33 @@ public static class TeamManager
 
 	public static Dictionary<Team, Color> TeamColors = new Dictionary<Team, Color>() 
 	{
-		[Team.RED] = Color.Red,
-		[Team.GREEN] = Color.Green,
-		[Team.BLUE] = Color.Blue,
-		[Team.YELLOW] = Color.Yellow,
-		[Team.NONE] = Color.White
+		[Team.RED] = Calc.HexToColor("cc3232"),
+		[Team.GREEN] = Calc.HexToColor("64dc00"),
+		[Team.BLUE] = Calc.HexToColor("5b6fe1"),
+		[Team.YELLOW] = Calc.HexToColor("ffff00"),
+		[Team.NONE] = Calc.HexToColor("ffffff"),
+		[Team.UNSET] = Calc.HexToColor("ac3232") // This won't set the player's hair to the appropriate color if they are using a non-default hair color, but I can't think of a situation where you would want to set the player's team to unset intentionally, so I'm not going to worry about it
+	};
+
+	public static Dictionary<Team, Color> TeamColorsAlternate = new Dictionary<Team, Color>() 
+	{
+		[Team.RED] = Calc.HexToColor("9a1f2a"),
+		[Team.GREEN] = Calc.HexToColor("68a334"),
+		[Team.BLUE] = Calc.HexToColor("3f3f74"),
+		[Team.YELLOW] = Calc.HexToColor("baba30"),
+		[Team.NONE] = Calc.HexToColor("000000"),
+		[Team.UNSET] = Calc.HexToColor("44b7ff")
 	};
 
 	private static Dictionary<uint, Team> playerTeamAssignments = new();
 	private static uint? localPlayerID 
 	{
-		get {
+		get 
+		{
+			if (clientContext == null)
+			{
+				return 0;
+			}
 			return clientContext?.Client.PlayerInfo.ID;
 		}
 	}
@@ -98,6 +114,9 @@ public static class TeamManager
 		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
 		OnLocalPlayerSwitched(newTeam);
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
+		// Changes the player's hair color to their new team's colors
+		Player.NormalHairColor = TeamColors[newTeam];
+		Player.UsedHairColor = TeamColorsAlternate[newTeam];
 		// Updates the local player's team remotely
 		if (clientContext == null)
 		{

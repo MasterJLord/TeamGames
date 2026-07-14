@@ -1,1 +1,7 @@
 SAMPLE_DIALOG_TEXT= Some sample text for your mod.
+
+MJLord_PracticeMod_Colosseum_Night=Colosseum Night
+poem_MJLord_PracticeMod_Colosseum_Night_A= GLHF
+Useless_Heart_1= There's a feather hidden in the centered floating block by the way
+Useless_Heart_2= You probably found it already though
+
