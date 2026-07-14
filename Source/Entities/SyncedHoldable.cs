@@ -168,6 +168,10 @@ public abstract class SyncedHoldable : Actor
 	{
 		base.Update();
 		updateGivenTime(Engine.DeltaTime);
+		if (clientContext == null)
+		{
+			return;
+		}
 		if (base.Scene.OnInterval(0.1f)) 
 		{
 			if (Hold.IsHeld) 
@@ -316,14 +320,14 @@ public abstract class SyncedHoldable : Actor
 	{
 		if (!Hold.IsHeld)
 		{
-			if (spring.Orientation == Spring.Orientations.Floor && Speed.Y >= 0f)
+			if (spring.Orientation == Spring.Orientations.Floor)
 			{
 				Speed.X *= 0.5f;
 				Speed.Y = -160f;
 				noGravityTimer = 0.15f;
 				return true;
 			}
-			if (spring.Orientation == Spring.Orientations.WallLeft && Speed.X <= 0f)
+			if (spring.Orientation == Spring.Orientations.WallLeft)
 			{
 				MoveTowardsY(spring.CenterY + 5f, 4f);
 				Speed.X = 220f;
@@ -331,7 +335,7 @@ public abstract class SyncedHoldable : Actor
 				noGravityTimer = 0.1f;
 				return true;
 			}
-			if (spring.Orientation == Spring.Orientations.WallRight && Speed.X >= 0f)
+			if (spring.Orientation == Spring.Orientations.WallRight)
 			{
 				MoveTowardsY(spring.CenterY + 5f, 4f);
 				Speed.X = -220f;
@@ -458,6 +462,10 @@ public abstract class SyncedHoldable : Actor
 	{
 		Speed = Vector2.Zero;
 		AddTag(Tags.Persistent);
+		if (clientContext == null)
+		{
+			return;
+		}
 		owners[base.SourceId.ID] = (uint) localPlayerID;
 		claimedTime = serverTime;
 		SendUpdate();
@@ -475,6 +483,10 @@ public abstract class SyncedHoldable : Actor
 		if (Speed != Vector2.Zero)
 		{
 			noGravityTimer = 0.1f;
+		}
+		if (clientContext == null)
+		{
+			return;
 		}
 		owners[base.SourceId.ID] = (uint) localPlayerID;
 		claimedTime = serverTime;

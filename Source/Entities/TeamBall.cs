@@ -161,7 +161,7 @@ public class TeamBall : SyncedHoldable
 			}
 			if (CollideCheck(goal))
 			{
-				TeamManager.ScorePoint(Scene, MyTeam);
+				TeamManager.ScorePoint(Scene, MyTeam, true);
 				SendUpdate();
 				Die();
 			}

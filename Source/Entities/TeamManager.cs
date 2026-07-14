@@ -228,11 +228,17 @@ public static class TeamManager
 		}
 	}
 
-	public static void ScorePoint(Scene scene, TeamManager.Team WinningTeam)
+	public static void ScorePoint(Scene scene, TeamManager.Team winningTeam, bool killPlayers = false, Vector2? position = null)
 	{
-		if (GetTeam(localPlayerID) != WinningTeam)
+		Player player = scene.Tracker.GetEntity<Player>();
+		if (GetTeam(localPlayerID) == winningTeam)
 		{
-			Player player = scene.Tracker.GetEntity<Player>();
+			Audio.Play("event:/game/general/strawberry_get", (position == null) ? player.Position : (Vector2) position, "colour", 3, "count", 1); 
+		} else {
+			Audio.Play("event:/new_content/char/madeline/death_golden", (position == null) ? player.Position : (Vector2) position);
+		}
+		if (killPlayers)
+		{
 			if (player == null)
 			{
 				Logger.Log(LogLevel.Warn, "practiceMod/TeamManager", "Losing player was not found");
