@@ -1,5 +1,5 @@
-namespace Celeste.Mod.practiceMod;
+namespace Celeste.Mod.TeamGames;
 
-public class practiceModModuleSession : EverestModuleSession {
+public class TeamGamesModuleSession : EverestModuleSession {
 
 }

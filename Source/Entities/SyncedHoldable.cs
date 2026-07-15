@@ -8,7 +8,7 @@ using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet.Client;
 using Celeste.Mod.CelesteNet.Client.Entities;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
 public abstract class SyncedHoldable : Actor
 {
@@ -119,13 +119,14 @@ public abstract class SyncedHoldable : Actor
 		}
 
 		DataContext data = clientContext.Client.Data;
-		// data.RegisterHandlersIn(this);
-		data.RegisterHandler<DataHoldableUpdate>(Handle);
-		data.RegisterHandler<DataSession>(Handle);
+		data.RegisterHandlersIn(this);
+		//data.RegisterHandler<DataHoldableUpdate>(Handle);
+		//data.RegisterHandler<DataSession>(Handle);
 	}
 
 	public override void Removed(Scene scene) 
 	{
+		base.Removed(scene);
 		if (clientContext == null)
 		{
 			return;
@@ -447,21 +448,18 @@ public abstract class SyncedHoldable : Actor
 		deadTimer = STAY_DEAD_TIME; 
 		Position = SpawnPosition;
 		Hold.cannotHoldTimer = Single.PositiveInfinity;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 	}
 
 	protected virtual void Respawn() 
 	{
 		sprite.Visible = true;
 		Hold.cannotHoldTimer = 0;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to respawn");
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	protected virtual void OnPickup()
 	{
 		Speed = Vector2.Zero;
-		AddTag(Tags.Persistent);
 		if (clientContext == null)
 		{
 			return;
@@ -474,7 +472,6 @@ public abstract class SyncedHoldable : Actor
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	protected virtual void OnRelease(Vector2 force)
 	{
-		RemoveTag(Tags.Persistent);
 		if (force.X != 0f && force.Y == 0f)
 		{
 			force.Y = -0.4f;
@@ -517,7 +514,7 @@ public abstract class SyncedHoldable : Actor
 	// Function used to get access to the client context
 	public static void GetClientContext(CelesteNetClientContext context) {
 		clientContext = context;
-		Logger.Log(LogLevel.Debug, "practiceMod/SyncedHoldable", "Got client context");
+		Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "Got client context");
 	}
 
 	protected virtual void Handle(CelesteNetConnection con, DataSession session) {
@@ -542,17 +539,15 @@ public abstract class SyncedHoldable : Actor
 		if (data.IsHeld) 
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Relocking");
 		} else if (IsHeldRemote) {
 			Hold.cannotHoldTimer = 0.1f;
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamBall", "Unlocking due to remote drop");
 		}
 		IsHeldRemote = data.IsHeld;
 		Position = data.Position;
 		Speed = data.Velocity;
 		if (serverTime < data.SentTime)
 		{
-			Logger.Log(LogLevel.Warn, "practiceMod/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + serverTime);
+			Logger.Log(LogLevel.Warn, "TeamGames/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + serverTime);
 		} else {
 			updateGivenTime(serverTime - data.SentTime, true);
 		}

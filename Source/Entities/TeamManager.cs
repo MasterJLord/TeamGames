@@ -9,7 +9,7 @@ using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CelesteNet.Client.Entities;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
 public static class TeamManager 
 {
@@ -111,7 +111,7 @@ public static class TeamManager
 		{
 			return;
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
 		OnLocalPlayerSwitched(newTeam);
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
 		// Changes the player's hair color to their new team's colors
@@ -154,15 +154,15 @@ public static class TeamManager
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataTeamsRequest>(Handle);
 		data.RegisterHandler<DataTeamsList>(Handle);
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Got client context");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Got client context");
 	}
 
 	public static void OnEnterLobby(Session session, bool fromSaveData) 
 	{
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", clientContext?.Client == null ? "true" : "false");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", clientContext?.Client == null ? "true" : "false");
 		
 		clientContext?.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", "Requested teams info");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Requested teams info");
 		// TODO: this is being called too early, and the request is not being received
 	}
 
@@ -182,10 +182,10 @@ public static class TeamManager
 	{
 		if (GetTeam(id) == newTeam) 
 		{
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Remote player's team is not being switched to their current team (" + id + " is still " + newTeam + ")");
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Remote player's team is not being switched to their current team (" + id + " is still " + newTeam + ")");
 			return;
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Switching remote player's team (" + id + " is now " + newTeam + ")");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Switching remote player's team (" + id + " is now " + newTeam + ")");
 		OnRemotePlayerSwitched(id, newTeam);
 		playerTeamAssignments[id] = newTeam;
 	}
@@ -193,7 +193,7 @@ public static class TeamManager
 	// Syncs all team data with other players in the server when a player joins a server
 	private static void Handle(CelesteNetConnection con, DataTeamsRequest data)
 	{
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Received request for teams");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Received request for teams");
 		// Only respond to the request if I have the lowest ID, so that multiple clients are not sending redundant information
 		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
 		foreach (DataPlayerInfo player in playerList)
@@ -203,7 +203,7 @@ public static class TeamManager
 				return;
 			}
 		}
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Responding to request for teams");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Responding to request for teams");
 		// Build a response data packet with the team data of all players who are still in the server is contained
 		DataTeamsList packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
 		foreach (DataPlayerInfo player in playerList)
@@ -223,7 +223,7 @@ public static class TeamManager
 		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
 		foreach (uint playerID in ids)
 		{
-			Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Receiving teams list: player " + playerID + " is " + data.PlayerAssignments[playerID]);
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Receiving teams list: player " + playerID + " is " + data.PlayerAssignments[playerID]);
 			SetTeamRemote(playerID, data.PlayerAssignments[playerID]);
 		}
 	}
@@ -241,7 +241,7 @@ public static class TeamManager
 		{
 			if (player == null)
 			{
-				Logger.Log(LogLevel.Warn, "practiceMod/TeamManager", "Losing player was not found");
+				Logger.Log(LogLevel.Warn, "TeamGames/TeamManager", "Losing player was not found");
 				return;
 			}
 			player.Die(player.Position);

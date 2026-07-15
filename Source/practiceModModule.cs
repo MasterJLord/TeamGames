@@ -1,34 +1,33 @@
 ﻿using System;
-using Celeste.Mod.practiceMod.Entities;
+using Celeste.Mod.TeamGames.Entities;
 using Celeste.Mod.CelesteNet.Client;
 
-namespace Celeste.Mod.practiceMod;
+namespace Celeste.Mod.TeamGames;
 
-public class practiceModModule : EverestModule {
-    public static practiceModModule Instance { get; private set; }
+public class TeamGamesModule : EverestModule {
+    public static TeamGamesModule Instance { get; private set; }
 
-    public override Type SettingsType => typeof(practiceModModuleSettings);
-    public static practiceModModuleSettings Settings => (practiceModModuleSettings) Instance._Settings;
+    public override Type SettingsType => typeof(TeamGamesModuleSettings);
+    public static TeamGamesModuleSettings Settings => (TeamGamesModuleSettings) Instance._Settings;
 
-    public override Type SessionType => typeof(practiceModModuleSession);
-    public static practiceModModuleSession Session => (practiceModModuleSession) Instance._Session;
+    public override Type SessionType => typeof(TeamGamesModuleSession);
+    public static TeamGamesModuleSession Session => (TeamGamesModuleSession) Instance._Session;
 
-    public override Type SaveDataType => typeof(practiceModModuleSaveData);
-    public static practiceModModuleSaveData SaveData => (practiceModModuleSaveData) Instance._SaveData;
+    public override Type SaveDataType => typeof(TeamGamesModuleSaveData);
+    public static TeamGamesModuleSaveData SaveData => (TeamGamesModuleSaveData) Instance._SaveData;
 
-    public practiceModModule() {
+    public TeamGamesModule() {
         Instance = this;
 #if DEBUG
         // debug builds use verbose logging
-        Logger.SetLogLevel(nameof(practiceModModule), LogLevel.Verbose);
+        Logger.SetLogLevel(nameof(TeamGamesModule), LogLevel.Verbose);
 #else
         // release builds use info logging to reduce spam in log files
-        Logger.SetLogLevel(nameof(practiceModModule), LogLevel.Info);
+        Logger.SetLogLevel(nameof(TeamGamesModule), LogLevel.Info);
 #endif
     }
 
     public override void Load() {
-	Logger.Log(LogLevel.Debug, "practiceMod/TeamManager", "Loaded");
 	CelesteNetClientContext.OnInit += TeamManager.GetClientContext;
 	CelesteNetClientContext.OnInit += SyncedHoldable.GetClientContext;
 	Everest.Events.Level.OnEnter += TeamManager.OnEnterLobby;
@@ -36,6 +35,10 @@ public class practiceModModule : EverestModule {
     }
 
     public override void Unload() {
+	CelesteNetClientContext.OnInit -= TeamManager.GetClientContext;
+	CelesteNetClientContext.OnInit -= SyncedHoldable.GetClientContext;
+	Everest.Events.Level.OnEnter -= TeamManager.OnEnterLobby;
+	Everest.Events.Level.OnExit -= TeamManager.OnExitLobby;
         // TODO: unapply any hooks applied in Load()
     }
 }

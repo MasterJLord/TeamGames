@@ -9,7 +9,7 @@ using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CelesteNet.Client.Entities;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
 // Uses DataModRec as a template
 public class DataTeamsRequest : DataType<DataTeamsRequest> {

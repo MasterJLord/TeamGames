@@ -6,9 +6,9 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using Celeste.Mod.CelesteNet.Client.Entities;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
-[CustomEntity("practiceMod/TeamControlledZone")]
+[CustomEntity("TeamGames/TeamControlledZone")]
 public class TeamControlledZone : Trigger {
 	public TeamManager.Team MyTeam;
 

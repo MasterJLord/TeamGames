@@ -6,16 +6,18 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using Celeste.Mod.CelesteNet;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
-[CustomEntity("practiceMod/TeamBall")]
+[CustomEntity("TeamGames/TeamBall")]
 public class TeamBall : SyncedHoldable 
 {
+	public static bool isLethal = true;
 
 	public TeamManager.Team MyTeam;
 	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
 	private float droppedTime = 0;
 	private bool doPhysics = false;
+	private float spawnSafety;
 
 	public TeamBall(EntityData data, Vector2 offset) : base(data, offset) 
 	{
@@ -48,7 +50,10 @@ public class TeamBall : SyncedHoldable
 			LifeMin = 0.3f,
 			LifeMax = 0.8f
 		};
+		Add(new PlayerCollider(onPlayer));
+		spawnSafety = 3f;
 
+		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Reset safety to " + spawnSafety);
 	}
 
 	public override void Awake(Scene scene) 
@@ -65,6 +70,7 @@ public class TeamBall : SyncedHoldable
 	{
 		base.Removed(scene);
 		TeamManager.LocalPlayerSwitched -= handleSwitch;
+		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Removed called");
 	}
 
 	public override bool IsRiding(Solid solid)
@@ -118,6 +124,7 @@ public class TeamBall : SyncedHoldable
 		} else if (IsHeldRemote) {
 			drop();
 		}
+		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Received message - timer is at " + spawnSafety);
 		base.Handle(con, data);
 		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
 		{
@@ -132,7 +139,7 @@ public class TeamBall : SyncedHoldable
 
 	protected override void updateGivenTime(float time, bool isCatchup = false) 
 	{
-		if (droppedTime >= 0)
+		if (!isCatchup && droppedTime >= 0)
 		{
 			droppedTime -= time;
 			if (droppedTime < 0) 
@@ -165,6 +172,20 @@ public class TeamBall : SyncedHoldable
 				SendUpdate();
 				Die();
 			}
+		}
+		spawnSafety -= Engine.DeltaTime;
+	}
+
+	private void onPlayer(Player player)
+	{
+		if (!isLethal || spawnSafety > 0)
+		{
+			return;
+		}
+		if (TeamManager.GetTeam(player, MyTeam) != MyTeam)
+		{
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "Killing rival player");
+			player.Die((player.Position - Position).SafeNormalize());
 		}
 	}
 }

@@ -9,7 +9,7 @@ using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CelesteNet.Client.Entities;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
 // Uses DataModRec as a template
 public class DataTeamsList : DataType<DataTeamsList> {
@@ -39,7 +39,7 @@ public class DataTeamsList : DataType<DataTeamsList> {
 	
 	protected override void Read(CelesteNetBinaryReader reader) {
 		int count = reader.ReadInt32();
-		Logger.Log(LogLevel.Debug, "practiceMod/TeamsList", "Got a teams list with " + count + " players in it");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Got a teams list with " + count + " players in it");
 		for (int i = 0; i < count; ++i) {
 			uint playerID = (uint) reader.ReadInt32();
 			TeamManager.Team team = (TeamManager.Team) reader.ReadByte();

@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
-[CustomEntity("practiceMod/TeamAssigner")]
+[CustomEntity("TeamGames/TeamAssigner")]
 public class TeamAssigner : Solid {
 	public TeamManager.Team MyTeam;
 	private Sprite sprite;

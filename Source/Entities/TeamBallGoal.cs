@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.practiceMod.Entities;
+namespace Celeste.Mod.TeamGames.Entities;
 
-[CustomEntity("practiceMod/TeamBallGoal")]
+[CustomEntity("TeamGames/TeamBallGoal")]
 [Tracked(false)]
 public class TeamBallGoal : Trigger {
 	public TeamManager.Team MyTeam;
