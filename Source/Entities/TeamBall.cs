@@ -13,7 +13,7 @@ namespace Celeste.Mod.TeamGames.Entities;
 public class TeamBall : SyncedHoldable 
 {
 
-	private static bool isLethal = true;
+	private static bool isLethal = false;
 
 	public TeamManager.Team MyTeam;
 	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
@@ -54,8 +54,6 @@ public class TeamBall : SyncedHoldable
 		};
 		Add(new PlayerCollider(onPlayer));
 		spawnSafety = 3f;
-
-		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Reset safety to " + spawnSafety);
 	}
 
 	public override void Awake(Scene scene) 
@@ -73,7 +71,6 @@ public class TeamBall : SyncedHoldable
 	{
 		base.Removed(scene);
 		TeamManager.LocalPlayerSwitched -= handleSwitch;
-		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Removed called");
 	}
 
 	public override bool IsRiding(Solid solid)
@@ -119,7 +116,7 @@ public class TeamBall : SyncedHoldable
 		doPhysics = false;
 	}
 
-	protected override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
+	public override void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
 	{
 		if (data.IsHeld)
 		{
@@ -127,7 +124,6 @@ public class TeamBall : SyncedHoldable
 		} else if (IsHeldRemote) {
 			drop();
 		}
-		Logger.Log(LogLevel.Debug, "PracticeMod/TeamBall", "Received message - timer is at " + spawnSafety);
 		base.Handle(con, data);
 		if (MyTeam != TeamManager.GetTeam(Scene.Tracker.GetEntity<Player>())) 
 		{
@@ -187,7 +183,6 @@ public class TeamBall : SyncedHoldable
 		}
 		if (TeamManager.GetTeam(player, MyTeam) != MyTeam)
 		{
-			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "Killing rival player");
 			player.Die((player.Position - Position).SafeNormalize());
 		}
 	}
@@ -207,7 +202,6 @@ public class TeamBall : SyncedHoldable
 
 	new public static void GetClientContext(CelesteNetClientContext context)
 	{
-		Logger.Log(LogLevel.Debug, "TeamBall", "Got context");
 		context.Client.Data.RegisterHandler<DataMatchInfo>(Handle);
 	}
 

@@ -1,7 +1,8 @@
 SAMPLE_DIALOG_TEXT= Some sample text for your mod.
 
-poem_MJLord_Capture_the_Gem_Colosseum_Night_A=glhf
-poem_MJLord_PracticeMod_Colosseum_Night_A= GLHF
-Useless_Heart_1= There's a feather hidden in the centered floating block by the way
-Useless_Heart_2= You probably found it already though
+MJLord_Capture_the_Gem= Capture the Gem
+MJLord_Capture_The_Gem_Colosseum_Night= Colosseum Night
+poem_MJLord_Capture_the_Gem_Colosseum_Night_A= GLHF
+Useless_Heart_1= There's a feather hidden in the centered floating block of the level by the way
+Useless_Heart_2= It shouldn't be hard to find if you know where to look
 

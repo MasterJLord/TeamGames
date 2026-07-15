@@ -153,10 +153,16 @@ public abstract class SyncedHoldable : Actor
 		if (minOtherID == localPlayerID) {
 			return;
 		}
+		Console.WriteLine(minOtherID);
+		Console.WriteLine(base.SourceId.ID);
+		Console.WriteLine(serverTime);
+		Console.WriteLine(Position);
+		Console.WriteLine(Speed);
+
 		DataHoldableUpdate dataPacket = new DataHoldableUpdate {
 			SenderID = minOtherID,
 			EntityID = base.SourceId.ID,
-			SentTime = Scene.TimeActive,
+			SentTime = serverTime,
 			IsHeld = false,
 			Position = Position,
 			Velocity = Speed
@@ -514,10 +520,9 @@ public abstract class SyncedHoldable : Actor
 	public static void GetClientContext(CelesteNetClientContext context) 
 	{
 		clientContext = context;
-		Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "Got client context");
 	}
 
-	protected virtual void Handle(CelesteNetConnection con, DataSession session) 
+	public virtual void Handle(CelesteNetConnection con, DataSession session) 
 	{
 		Logger.Log(LogLevel.Warn, "TeamGames.SyncedHoldable", "DataSession received!");
 		Console.WriteLine(Scene.TimeActive);
@@ -525,7 +530,7 @@ public abstract class SyncedHoldable : Actor
 		Console.WriteLine(session.Time);
 	}
 
-	protected virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
+	public virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
 	{
 		if (base.SourceId.ID != data.EntityID) {
 			return;
