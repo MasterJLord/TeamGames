@@ -1,5 +1,5 @@
 local weirdDashZone = {
-	name = "practiceMod/WeirdDashZone",
+	name = "TeamGames/WeirdDashZone",
 	placements = {
 		name = "WeirdDashZone",
 		data = {

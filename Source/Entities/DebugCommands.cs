@@ -21,7 +21,7 @@ namespace Celeste.Mod.TeamGames
         [Command("balltoggle", "toggles the lethality of TeamBalls")]
         public static void ballToggle() 
 	{
-		TeamBall.isLethal = !TeamBall.isLethal;
+		TeamBall.ToggleLethal();
         }
 
     }

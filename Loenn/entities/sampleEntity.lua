@@ -1,7 +1,7 @@
 local sampleEntity = {
-    name = "practiceMod/SampleEntity",
+    name = "TeamGames/SampleEntity",
     depth = -8500,
-    texture = "objects/practiceMod/PushBumper/Idle00",
+    texture = "objects/TeamGames/PushBumper/Idle00",
     placements = {
         {
             name = "normal",

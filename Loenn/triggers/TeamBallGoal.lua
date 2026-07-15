@@ -1,6 +1,6 @@
 
 local weirdDashZone = {
-	name = "practiceMod/TeamBallGoal",
+	name = "TeamGames/TeamBallGoal",
 	placements = {
 		name = "Goal (red)",
 		data = {

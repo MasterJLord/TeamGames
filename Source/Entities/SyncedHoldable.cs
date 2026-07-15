@@ -497,7 +497,6 @@ public abstract class SyncedHoldable : Actor
 		}
 		if (owners[base.SourceId.ID] != localPlayerID) 
 		{
-
 			return;
 		}
 		DataHoldableUpdate data = new DataHoldableUpdate {
@@ -512,18 +511,22 @@ public abstract class SyncedHoldable : Actor
 	}
 
 	// Function used to get access to the client context
-	public static void GetClientContext(CelesteNetClientContext context) {
+	public static void GetClientContext(CelesteNetClientContext context) 
+	{
 		clientContext = context;
 		Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "Got client context");
 	}
 
-	protected virtual void Handle(CelesteNetConnection con, DataSession session) {
+	protected virtual void Handle(CelesteNetConnection con, DataSession session) 
+	{
+		Logger.Log(LogLevel.Warn, "TeamGames.SyncedHoldable", "DataSession received!");
 		Console.WriteLine(Scene.TimeActive);
 		Console.WriteLine(session.InSession);
 		Console.WriteLine(session.Time);
 	}
 
-	protected virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) {
+	protected virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) 
+	{
 		if (base.SourceId.ID != data.EntityID) {
 			return;
 		}

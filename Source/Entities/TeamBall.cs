@@ -5,13 +5,15 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
 using Celeste.Mod.CelesteNet;
+using Celeste.Mod.CelesteNet.Client;
 
 namespace Celeste.Mod.TeamGames.Entities;
 
 [CustomEntity("TeamGames/TeamBall")]
 public class TeamBall : SyncedHoldable 
 {
-	public static bool isLethal = true;
+
+	private static bool isLethal = true;
 
 	public TeamManager.Team MyTeam;
 	private const float DROP_TIME = 6f - STAY_DEAD_TIME;
@@ -64,6 +66,7 @@ public class TeamBall : SyncedHoldable
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
 		}
 		TeamManager.LocalPlayerSwitched += handleSwitch;
+		
 	}
 
 	public override void Removed(Scene scene)
@@ -187,5 +190,29 @@ public class TeamBall : SyncedHoldable
 			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "Killing rival player");
 			player.Die((player.Position - Position).SafeNormalize());
 		}
+	}
+
+	public static void ToggleLethal()
+	{
+		isLethal = !isLethal;
+		if (clientContext == null)
+		{
+			return;
+		}
+		DataMatchInfo data = new DataMatchInfo {
+			TeamBallsAreDeadly = isLethal
+		};
+		clientContext.Client.Send(data);
+	}
+
+	new public static void GetClientContext(CelesteNetClientContext context)
+	{
+		Logger.Log(LogLevel.Debug, "TeamBall", "Got context");
+		context.Client.Data.RegisterHandler<DataMatchInfo>(Handle);
+	}
+
+	public static void Handle(CelesteNetConnection con, DataMatchInfo data)
+	{
+		isLethal = data.TeamBallsAreDeadly;
 	}
 }

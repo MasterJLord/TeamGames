@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <AssemblyName>practiceMod</AssemblyName>
-        <RootNamespace>Celeste.Mod.practiceMod</RootNamespace>
+        <AssemblyName>TeamGames</AssemblyName>
+        <RootNamespace>Celeste.Mod.TeamGames</RootNamespace>
         <LangVersion>latest</LangVersion>
         <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\Celeste.dll')">..\..\..</CelestePrefix>
         <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
@@ -39,15 +39,15 @@
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="..\bin" />
     </Target>
 
-    <Target Name="PackageMod" AfterTargets="CopyFiles" Inputs="$(ZippedFiles)" Outputs="..\practiceMod.zip" Condition="'$(Configuration)' == 'Release'">
+    <Target Name="PackageMod" AfterTargets="CopyFiles" Inputs="$(ZippedFiles)" Outputs="..\TeamGames.zip" Condition="'$(Configuration)' == 'Release'">
         <ItemGroup>
             <FilesToPackage Include="$(ZippedFiles)" />
         </ItemGroup>
-        <PackageMod Files="@(FilesToPackage)" OutputPath="..\practiceMod.zip" />
+        <PackageMod Files="@(FilesToPackage)" OutputPath="..\TeamGames.zip" />
     </Target>
     
     <PropertyGroup>
-        <PathMap>$(MSBuildProjectDirectory)=practiceMod/</PathMap>
+        <PathMap>$(MSBuildProjectDirectory)=TeamGames/</PathMap>
     </PropertyGroup>
 
     <!-- Inline task used to create a .zip for the mod -->

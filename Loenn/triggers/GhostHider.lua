@@ -1,5 +1,5 @@
 local weirdDashZone = {
-	name = "practiceMod/GhostHider",
+	name = "TeamGames/GhostHider",
 	placements = {
 		name = "Ghost Hider",
 		data = {

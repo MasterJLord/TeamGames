@@ -1,5 +1,5 @@
-- DLL: bin/practiceMod.dll
-  Name: practiceMod
+- DLL: bin/TeamGames.dll
+  Name: TeamGames
   Version: 0.1.0
   Dependencies:
     - Name: CelesteNet.Client
