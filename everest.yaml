@@ -1,6 +1,6 @@
-- DLL: bin/TeamGames.dll
-  Name: TeamGames
-  Version: 0.1.0
+- Name: TeamGames
+  Version: 1.0.0
+  DLL: bin/TeamGames.dll
   Dependencies:
     - Name: CelesteNet.Client
       Version: 2.4.2
