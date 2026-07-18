@@ -153,11 +153,11 @@ public abstract class SyncedHoldable : Actor
 		if (minOtherID == localPlayerID) {
 			return;
 		}
-		Console.WriteLine(minOtherID);
-		Console.WriteLine(base.SourceId.ID);
-		Console.WriteLine(serverTime);
-		Console.WriteLine(Position);
-		Console.WriteLine(Speed);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + minOtherID);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + base.SourceId.ID);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + serverTime);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + Position);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + Speed);
 
 		DataHoldableUpdate dataPacket = new DataHoldableUpdate {
 			SenderID = minOtherID,
@@ -525,9 +525,9 @@ public abstract class SyncedHoldable : Actor
 	public virtual void Handle(CelesteNetConnection con, DataSession session) 
 	{
 		Logger.Log(LogLevel.Warn, "TeamGames.SyncedHoldable", "DataSession received!");
-		Console.WriteLine(Scene.TimeActive);
-		Console.WriteLine(session.InSession);
-		Console.WriteLine(session.Time);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + Scene.TimeActive);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + session.InSession);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + session.Time);
 	}
 
 	public virtual void Handle(CelesteNetConnection con, DataHoldableUpdate data) 

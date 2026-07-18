@@ -154,21 +154,41 @@ public static class TeamManager
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataTeamsRequest>(Handle);
 		data.RegisterHandler<DataTeamsList>(Handle);
+		data.RegisterHandler<DataReady>(Handle);
+		data.RegisterHandler<DataChannelMove>(Handle);
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Got client context");
 	}
 
-	public static void OnEnterLobby(Session session, bool fromSaveData) 
+	public static void Handle(CelesteNetConnection con, DataReady data)
 	{
+		OnEnterLobby();
+	}
+
+	public static void Handle(CelesteNetConnection con, DataChannelMove data)
+	{
+		if (data.Player == null || data.Player.ID != localPlayerID)
+		{
+			return;
+		}
+		OnEnterLobby();
+	}
+
+	public static void OnEnterLobby()
+	{
+		playerTeamAssignments = new();
+		OnLocalPlayerSwitched(Team.UNSET);
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", clientContext?.Client == null ? "true" : "false");
 		
-		clientContext?.Client.Send(new DataTeamsRequest {Player = clientContext.Client.PlayerInfo});
+		clientContext?.Client.Send(new DataTeamsRequest {
+			Player = clientContext.Client.PlayerInfo,
+			senderID = localPlayerID
+			});
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Requested teams info");
 		// TODO: this is being called too early, and the request is not being received
 	}
 
 	public static void OnExitLobby(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) 
 	{
-		playerTeamAssignments = new();
 	}
 
 
@@ -194,10 +214,14 @@ public static class TeamManager
 	private static void Handle(CelesteNetConnection con, DataTeamsRequest data)
 	{
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Received request for teams");
-		// Only respond to the request if I have the lowest ID, so that multiple clients are not sending redundant information
+		// Only respond to the request if I have the lowest other ID, so that multiple clients are not sending redundant information
 		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
 		foreach (DataPlayerInfo player in playerList)
 		{
+			if (player.ID == data.senderID)
+			{
+				continue;
+			}
 			if (player.ID < localPlayerID)
 			{
 				return;
@@ -220,6 +244,7 @@ public static class TeamManager
 
 	private static void Handle(CelesteNetConnection con, DataTeamsList data)
 	{
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Received teams list");
 		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
 		foreach (uint playerID in ids)
 		{

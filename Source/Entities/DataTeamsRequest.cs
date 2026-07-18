@@ -19,6 +19,7 @@ public class DataTeamsRequest : DataType<DataTeamsRequest> {
 	}
 
 	public DataPlayerInfo Player;
+	public uint? senderID;
 
 	// Gives this data the MetaPlayerUpdate metadata, which tells the server to broadcast it to all other players when it is sent to the server
 	
@@ -30,21 +31,29 @@ public class DataTeamsRequest : DataType<DataTeamsRequest> {
 		return meta;
 	}
 
-        public override void FixupMeta(DataContext ctx) {
+        public override void FixupMeta(DataContext ctx) 
+	{
             Player = Get<MetaPlayerUpdate>(ctx);
         }
 
-        protected override MetaType[] ReadMeta(CelesteNetBinaryReader reader) {
+        protected override MetaType[] ReadMeta(CelesteNetBinaryReader reader) 
+	{
             MetaType[] meta = new MetaType[reader.ReadByte()];
             for (int i = 0; i < meta.Length; i++)
                 meta[i] = reader.Data.ReadMeta(reader);
             return meta;
         }
 
-	protected override void Write(CelesteNetBinaryWriter writer) {
+	protected override void Write(CelesteNetBinaryWriter writer) 
+	{
+		if (senderID == null)
+		{
+			Logger.Log(LogLevel.Error, "TeamGames/DataTeamsRequest", "Request missing sender id");
+		}
+		writer.Write((uint) senderID);
 	}
 
 	protected override void Read(CelesteNetBinaryReader reader) {
-		Console.WriteLine("Got here");
+		senderID = (uint) reader.ReadInt32();
 	}
 }
