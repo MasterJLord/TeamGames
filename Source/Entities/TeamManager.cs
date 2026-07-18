@@ -231,7 +231,8 @@ public static class TeamManager
 	public static void ScorePoint(Scene scene, TeamManager.Team winningTeam, bool killPlayers = false, Vector2? position = null)
 	{
 		Player player = scene.Tracker.GetEntity<Player>();
-		if (GetTeam(localPlayerID) == winningTeam)
+		bool victory = GetTeam(localPlayerID) == winningTeam;
+		if (victory)
 		{
 			Audio.Play("event:/game/general/strawberry_get", (position == null) ? player.Position : (Vector2) position, "colour", 3, "count", 1); 
 		} else {
@@ -244,7 +245,7 @@ public static class TeamManager
 				Logger.Log(LogLevel.Warn, "TeamGames/TeamManager", "Losing player was not found");
 				return;
 			}
-			player.Die(player.Position);
+			player.Die(Vector2.UnitY * (victory ? -1 : 1));
 		}
 	}
 }
