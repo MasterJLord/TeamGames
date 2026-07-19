@@ -45,15 +45,15 @@ public static class TeamManager
 	};
 
 	private static Dictionary<uint, Team> playerTeamAssignments = new();
-	private static uint? localPlayerID 
+	public static uint? localPlayerID 
 	{
 		get 
 		{
-			if (clientContext == null)
+			if (clientContext == null || clientContext.Client == null || clientContext.Client.PlayerInfo  == null)
 			{
 				return 0;
 			}
-			return clientContext?.Client.PlayerInfo.ID;
+			return clientContext.Client.PlayerInfo.ID;
 		}
 	}
 	private static CelesteNetClientContext clientContext;
@@ -154,15 +154,16 @@ public static class TeamManager
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataTeamsRequest>(Handle);
 		data.RegisterHandler<DataTeamsList>(Handle);
-		data.RegisterHandler<DataReady>(Handle);
 		data.RegisterHandler<DataChannelMove>(Handle);
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Got client context");
 	}
 
+	/*
 	public static void Handle(CelesteNetConnection con, DataReady data)
 	{
 		OnEnterLobby();
 	}
+	*/
 
 	public static void Handle(CelesteNetConnection con, DataChannelMove data)
 	{
@@ -256,12 +257,13 @@ public static class TeamManager
 	public static void ScorePoint(Scene scene, TeamManager.Team winningTeam, bool killPlayers = false, Vector2? position = null)
 	{
 		Player player = scene.Tracker.GetEntity<Player>();
+		Vector2 playerPosition = player == null ? Vector2.Zero : player.Position;
 		bool victory = GetTeam(localPlayerID) == winningTeam;
 		if (victory)
 		{
-			Audio.Play("event:/game/general/strawberry_get", (position == null) ? player.Position : (Vector2) position, "colour", 3, "count", 1); 
+			Audio.Play("event:/game/general/strawberry_get", (position == null) ? playerPosition : (Vector2) position, "colour", 3, "count", 1); 
 		} else {
-			Audio.Play("event:/new_content/char/madeline/death_golden", (position == null) ? player.Position : (Vector2) position);
+			Audio.Play("event:/new_content/char/madeline/death_golden", (position == null) ? playerPosition : (Vector2) position);
 		}
 		if (killPlayers)
 		{

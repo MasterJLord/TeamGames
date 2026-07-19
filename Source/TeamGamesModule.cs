@@ -31,16 +31,11 @@ public class TeamGamesModule : EverestModule {
 	CelesteNetClientContext.OnInit += TeamManager.GetClientContext;
 	CelesteNetClientContext.OnInit += SyncedHoldable.GetClientContext;
 	CelesteNetClientContext.OnInit += TeamBall.GetClientContext;
-	Everest.Events.Level.OnEnter += TeamManager.OnEnterLobby;
-	Everest.Events.Level.OnExit += TeamManager.OnExitLobby;
     }
 
     public override void Unload() {
 	CelesteNetClientContext.OnInit -= TeamManager.GetClientContext;
 	CelesteNetClientContext.OnInit -= SyncedHoldable.GetClientContext;
 	CelesteNetClientContext.OnInit -= TeamBall.GetClientContext;
-	Everest.Events.Level.OnEnter -= TeamManager.OnEnterLobby;
-	Everest.Events.Level.OnExit -= TeamManager.OnExitLobby;
-        // TODO: unapply any hooks applied in Load()
     }
 }

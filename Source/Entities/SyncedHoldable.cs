@@ -15,8 +15,13 @@ public abstract class SyncedHoldable : Actor
 	protected static CelesteNetClientContext clientContext;
 	protected static uint? localPlayerID 
 	{
-		get {
-			return clientContext?.Client.PlayerInfo.ID;
+		get 
+		{
+			if (clientContext == null || clientContext.Client == null || clientContext.Client.PlayerInfo  == null)
+			{
+				return 0;
+			}
+			return clientContext.Client.PlayerInfo.ID;
 		}
 	}
 	protected static Dictionary<int, uint> owners = new();
@@ -185,7 +190,10 @@ public abstract class SyncedHoldable : Actor
 			{
 				owners[base.SourceId.ID] = (uint) localPlayerID;
 			}
-			SendUpdate();
+			if (owners[base.SourceId.ID] == (uint)localPlayerID)
+			{
+				SendUpdate();
+			}
 		}
 	}
 
@@ -498,10 +506,6 @@ public abstract class SyncedHoldable : Actor
 
 	protected void SendUpdate() {
 		if (clientContext == null)
-		{
-			return;
-		}
-		if (owners[base.SourceId.ID] != localPlayerID) 
 		{
 			return;
 		}
