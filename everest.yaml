@@ -1,5 +1,5 @@
 - Name: TeamGames
-  Version: 1.1.0
+  Version: 1.1.1
   DLL: bin/TeamGames.dll
   Dependencies:
     - Name: CelesteNet.Client
