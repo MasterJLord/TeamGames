@@ -12,10 +12,10 @@ using Celeste.Mod.CelesteNet.Client.Entities;
 namespace Celeste.Mod.TeamGames.Entities;
 
 // Uses DataModRec as a template
-public class DataTeamsList : DataType<DataTeamsList> {
+public class DataSync : DataType<DataSync> {
 	
-	static DataTeamsList() {
-		DataID = "TeamsList";
+	static DataSync() {
+		DataID = "Sync";
 	}
 
 	public DataPlayerInfo Player;

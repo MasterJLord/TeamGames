@@ -129,6 +129,12 @@ public class TeamBall : SyncedHoldable
 		{
 			Hold.cannotHoldTimer = Single.PositiveInfinity;
 		}
+		// Same as in Update() but without sending an update, in order to prevent a death loop
+		if (checkForGoal())
+		{
+			TeamManager.ScorePoint(Scene, MyTeam, true);
+			Position = SpawnPosition;
+		}
 	}
 
 	private void drop() 
@@ -156,9 +162,8 @@ public class TeamBall : SyncedHoldable
 		}
 	}
 
-	public override void Update()
+	private bool checkForGoal()
 	{
-		base.Update();
 		foreach (TeamBallGoal goal in Scene.Tracker.GetEntities<TeamBallGoal>())
 		{
 			if (goal.MyTeam != MyTeam)
@@ -167,13 +172,20 @@ public class TeamBall : SyncedHoldable
 			}
 			if (CollideCheck(goal))
 			{
-				if (deadTimer <= 0f)
-				{
-					TeamManager.ScorePoint(Scene, MyTeam, true);
-				}
-				SendUpdate();
-				Die();
+				return true;
 			}
+		}
+		return false;
+	}
+
+	public override void Update()
+	{
+		base.Update();
+		if (checkForGoal())
+		{
+			TeamManager.ScorePoint(Scene, MyTeam, true);
+			SendUpdate();
+			Position = SpawnPosition;
 		}
 		spawnSafety -= Engine.DeltaTime;
 	}

@@ -153,7 +153,7 @@ public static class TeamManager
 		DataContext data = context.Client.Data;
 		data.RegisterHandler<DataTeamSwitchEvent>(Handle);
 		data.RegisterHandler<DataTeamsRequest>(Handle);
-		data.RegisterHandler<DataTeamsList>(Handle);
+		data.RegisterHandler<DataSync>(Handle);
 		data.RegisterHandler<DataChannelMove>(Handle);
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Got client context");
 	}
@@ -230,7 +230,7 @@ public static class TeamManager
 		}
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Responding to request for teams");
 		// Build a response data packet with the team data of all players who are still in the server is contained
-		DataTeamsList packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
+		DataSync packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
 		foreach (DataPlayerInfo player in playerList)
 		{
 			if (GetTeam(player.ID) == Team.UNSET)
@@ -243,7 +243,7 @@ public static class TeamManager
 
 	}
 
-	private static void Handle(CelesteNetConnection con, DataTeamsList data)
+	private static void Handle(CelesteNetConnection con, DataSync data)
 	{
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Received teams list");
 		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
