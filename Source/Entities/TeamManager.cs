@@ -230,7 +230,7 @@ public static class TeamManager
 		}
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Responding to request for teams");
 		// Build a response data packet with the team data of all players who are still in the server is contained
-		DataSync packet = new DataTeamsList {Player = clientContext.Client.PlayerInfo};
+		DataSync packet = new DataSync {Player = clientContext.Client.PlayerInfo};
 		foreach (DataPlayerInfo player in playerList)
 		{
 			if (GetTeam(player.ID) == Team.UNSET)

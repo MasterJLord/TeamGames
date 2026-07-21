@@ -1,2 +1,2 @@
 dotnet build
-return 0
+exit 0

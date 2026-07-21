@@ -20,7 +20,7 @@ public class DataHoldableUpdate : DataType<DataHoldableUpdate> {
 	public DataPlayerInfo Player;
 	public uint SenderID;
 	public int EntityID;
-	public float SentTime;
+	public long SentTime;
 	public bool IsHeld;
 	public Vector2 Position;
 	public Vector2 Velocity;
@@ -50,7 +50,7 @@ public class DataHoldableUpdate : DataType<DataHoldableUpdate> {
 	protected override void Read(CelesteNetBinaryReader reader) {
 		SenderID = (uint) reader.ReadInt32();
 		EntityID = reader.ReadInt32();
-		SentTime = reader.ReadSingle();
+		SentTime = reader.ReadInt64();
 		Position = reader.ReadVector2();
 		Velocity = reader.ReadVector2();
 		IsHeld = reader.ReadByte() > 0;

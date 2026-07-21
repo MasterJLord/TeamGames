@@ -7,6 +7,7 @@ using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CelesteNet.Client;
 using Celeste.Mod.CelesteNet.Client.Entities;
+using Celeste.Mod.Head2Head.IO;
 
 namespace Celeste.Mod.TeamGames.Entities;
 
@@ -25,12 +26,11 @@ public abstract class SyncedHoldable : Actor
 		}
 	}
 	protected static Dictionary<int, uint> owners = new();
-	protected static float serverTime
+	protected static long serverTime
 	{
 		get
 		{
-			return 0;
-			// TODO: replace this with a way of getting the actual time synchronized between all players
+			return SyncedClock.Now.Ticks;
 		}
 	}
 
@@ -50,7 +50,7 @@ public abstract class SyncedHoldable : Actor
 	protected Vector2 prevLiftSpeed;
 	protected float hardVerticalHitSoundCooldown;
 	protected ParticleType P_Impact;
-	protected float claimedTime = -1;
+	protected long claimedTime = -1;
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public SyncedHoldable(EntityData data, Vector2 offset)
@@ -229,8 +229,8 @@ public abstract class SyncedHoldable : Actor
 					Position = (Vector2) (ghost?.Position + player?.carryOffset + Vector2.UnitY * ghost?.Sprite.CarryYOffset);
 				}
 				Hold.CheckAgainstColliders();
-				return;
 			}
+			return;
 		}
 		if (Hold.IsHeld)
 		{
@@ -561,7 +561,8 @@ public abstract class SyncedHoldable : Actor
 		{
 			Logger.Log(LogLevel.Warn, "TeamGames/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + serverTime);
 		} else {
-			updateGivenTime(serverTime - data.SentTime, true);
+			Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "DeltaTime is " + (serverTime - data.SentTime) / 10000000f);
+			updateGivenTime((serverTime - data.SentTime) / 10000000f, true);
 		}
 	}
 }
