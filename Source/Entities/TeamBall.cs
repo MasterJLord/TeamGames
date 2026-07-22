@@ -205,14 +205,14 @@ public class TeamBall : SyncedHoldable
 	public static void ToggleLethal()
 	{
 		isLethal = !isLethal;
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
 		DataMatchInfo data = new DataMatchInfo {
 			TeamBallsAreDeadly = isLethal
 		};
-		clientContext.Client.Send(data);
+		ClientContext.Client.Send(data);
 	}
 
 	new public static void GetClientContext(CelesteNetClientContext context)

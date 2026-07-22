@@ -13,20 +13,20 @@ namespace Celeste.Mod.TeamGames.Entities;
 
 public abstract class SyncedHoldable : Actor
 {
-	protected static CelesteNetClientContext clientContext;
+	public static CelesteNetClientContext ClientContext;
 	protected static uint? localPlayerID 
 	{
 		get 
 		{
-			if (clientContext == null || clientContext.Client == null || clientContext.Client.PlayerInfo  == null)
+			if (ClientContext == null || ClientContext.Client == null || ClientContext.Client.PlayerInfo  == null)
 			{
 				return 0;
 			}
-			return clientContext.Client.PlayerInfo.ID;
+			return ClientContext.Client.PlayerInfo.ID;
 		}
 	}
 	protected static Dictionary<int, uint> owners = new();
-	protected static long serverTime
+	public static long ServerTime
 	{
 		get
 		{
@@ -101,13 +101,13 @@ public abstract class SyncedHoldable : Actor
 	{
 		base.Added(scene);
 		level = SceneAs<Level>();
-		if (clientContext == null) 
+		if (ClientContext == null) 
 		{
 			return;
 		}
 		if (!owners.ContainsKey(base.SourceId.ID)) 
 		{
-			DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
+			DataPlayerInfo[] playerList = ClientContext.Client.Data.GetRefs<DataPlayerInfo>();
 			uint minID = playerList[0].ID;
 			foreach (DataPlayerInfo player in playerList) 
 			{
@@ -119,11 +119,11 @@ public abstract class SyncedHoldable : Actor
 			owners[base.SourceId.ID] = minID;
 			if ((minID) == localPlayerID)
 			{
-				claimedTime = serverTime;
+				claimedTime = ServerTime;
 			}
 		}
 
-		DataContext data = clientContext.Client.Data;
+		DataContext data = ClientContext.Client.Data;
 		data.RegisterHandlersIn(this);
 		//data.RegisterHandler<DataHoldableUpdate>(Handle);
 		//data.RegisterHandler<DataSession>(Handle);
@@ -132,11 +132,11 @@ public abstract class SyncedHoldable : Actor
 	public override void Removed(Scene scene) 
 	{
 		base.Removed(scene);
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
-		DataContext data = clientContext.Client.Data;
+		DataContext data = ClientContext.Client.Data;
 		data.UnregisterHandlersIn(this);
 
 		// Relinquishes control of the ball before it is reset, so that it is not reset across all players' games (assuming there is another player eligible to gain control of it)
@@ -145,7 +145,7 @@ public abstract class SyncedHoldable : Actor
 		{
 			return;
 		}
-		DataPlayerInfo[] playerList = clientContext.Client.Data.GetRefs<DataPlayerInfo>();
+		DataPlayerInfo[] playerList = ClientContext.Client.Data.GetRefs<DataPlayerInfo>();
 		uint minOtherID = playerList[0].ID;
 		foreach (DataPlayerInfo player in playerList) 
 		{
@@ -160,19 +160,19 @@ public abstract class SyncedHoldable : Actor
 		}
 		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + minOtherID);
 		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + base.SourceId.ID);
-		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + serverTime);
+		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + ServerTime);
 		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + Position);
 		Logger.Log(LogLevel.Debug,"TeamGames/SyncedHoldable", "" + Speed);
 
 		DataHoldableUpdate dataPacket = new DataHoldableUpdate {
 			SenderID = minOtherID,
 			EntityID = base.SourceId.ID,
-			SentTime = serverTime,
+			SentTime = ServerTime,
 			IsHeld = false,
 			Position = Position,
 			Velocity = Speed
 		};
-		clientContext.Client.Send(dataPacket);
+		ClientContext.Client.Send(dataPacket);
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
@@ -180,7 +180,7 @@ public abstract class SyncedHoldable : Actor
 	{
 		base.Update();
 		updateGivenTime(Engine.DeltaTime);
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
@@ -474,12 +474,12 @@ public abstract class SyncedHoldable : Actor
 	protected virtual void OnPickup()
 	{
 		Speed = Vector2.Zero;
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
 		owners[base.SourceId.ID] = (uint) localPlayerID;
-		claimedTime = serverTime;
+		claimedTime = ServerTime;
 		SendUpdate();
 	}
 
@@ -495,35 +495,35 @@ public abstract class SyncedHoldable : Actor
 		{
 			noGravityTimer = 0.1f;
 		}
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
 		owners[base.SourceId.ID] = (uint) localPlayerID;
-		claimedTime = serverTime;
+		claimedTime = ServerTime;
 		SendUpdate();
 	}
 
 	protected void SendUpdate() {
-		if (clientContext == null)
+		if (ClientContext == null)
 		{
 			return;
 		}
 		DataHoldableUpdate data = new DataHoldableUpdate {
 			SenderID = (uint) localPlayerID,
 			EntityID = base.SourceId.ID,
-			SentTime = serverTime,
+			SentTime = ServerTime,
 			IsHeld = Hold.IsHeld,
 			Position = Position,
 			Velocity = Speed
 		};
-		clientContext.Client.Send(data);
+		ClientContext.Client.Send(data);
 	}
 
 	// Function used to get access to the client context
 	public static void GetClientContext(CelesteNetClientContext context) 
 	{
-		clientContext = context;
+		ClientContext = context;
 	}
 
 	public virtual void Handle(CelesteNetConnection con, DataSession session) 
@@ -557,12 +557,13 @@ public abstract class SyncedHoldable : Actor
 		IsHeldRemote = data.IsHeld;
 		Position = data.Position;
 		Speed = data.Velocity;
-		if (serverTime < data.SentTime)
+		if (ServerTime < data.SentTime)
 		{
-			Logger.Log(LogLevel.Warn, "TeamGames/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + serverTime);
+			Logger.Log(LogLevel.Warn, "TeamGames/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + ServerTime);
 		} else {
-			Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "DeltaTime is " + (serverTime - data.SentTime) / 10000000f);
-			updateGivenTime((serverTime - data.SentTime) / 10000000f, true);
+			// Divides by 1e7 to convert from hundred-nanoseconds to seconds
+			Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "DeltaTime is " + (ServerTime - data.SentTime) / 1e7f);
+			updateGivenTime((ServerTime - data.SentTime) / 1e7f, true);
 		}
 	}
 }
