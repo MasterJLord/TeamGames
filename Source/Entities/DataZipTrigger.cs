@@ -22,6 +22,7 @@ public class DataZipTrigger : DataType<DataZipTrigger> {
 	public DataPlayerInfo Player;
 	public long SentTime;
 	public int MoveGroup;
+	public bool Toggled;
 
 	// Gives this data the MetaPlayerUpdate metadata, which tells the server to broadcast it to all other players when it is sent to the server
 	
@@ -42,10 +43,12 @@ public class DataZipTrigger : DataType<DataZipTrigger> {
 	protected override void Read(CelesteNetBinaryReader reader) {
 		SentTime = reader.ReadInt64();
 		MoveGroup = reader.ReadInt32();
+		Toggled = reader.ReadByte() > 0;
 	}
 
 	protected override void Write(CelesteNetBinaryWriter writer) {
 		writer.Write(SentTime);
 		writer.Write(MoveGroup);
+		writer.Write((byte) (Toggled ? 1 : 0));
 	}
 }

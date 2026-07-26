@@ -7,17 +7,23 @@ local utils = require("utils")
 local SyncedZipMover = {}
 
 local themeTextures = {
-    syncedzipmovernormal = {
+    normal = {
         nodeCog = "objects/zipmover/cog",
         lights = "objects/zipmover/light01",
         block = "objects/zipmover/block",
         innerCogs = "objects/zipmover/innercog"
     },
-    syncedzipmovermoon = {
+    moon = {
         nodeCog = "objects/zipmover/moon/cog",
         lights = "objects/zipmover/moon/light01",
-        block = "objects/zipmover/moon/block",
+	block = "objects/zipmover/moon/block",
         innerCogs = "objects/zipmover/moon/innercog"
+    },
+    brass = {
+	    nodeCog = "objects/TeamGames/brassZip/cog",
+	    lights = "objects/TeamGames/brassZip/light01",
+	    block = "objects/TeamGames/brassZip/block",
+	    innerCogs = "objects/TeamGames/brassZip/innercog"
     }
 }
 
@@ -30,7 +36,7 @@ local centerColor = {0, 0, 0}
 local ropeColor = {102 / 255, 57 / 255, 49 / 255}
 
 local themes = {
-    "SyncedZipMoverNormal", "SyncedZipMoverMoon"
+    "Normal", "Moon", "Brass"
 }
 
 SyncedZipMover.name = "TeamGames/SyncedZipMover"
@@ -53,7 +59,8 @@ for i, theme in ipairs(themes) do
             width = 16,
             height = 16,
             theme = theme,
-	    group = 0
+	    group = 0,
+	    toggle = false
         }
     }
 end

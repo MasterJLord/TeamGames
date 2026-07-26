@@ -7,12 +7,27 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using Celeste.Mod.Entities;
 using Celeste.Mod.CelesteNet;
+using Celeste.Mod.CelesteNet.Client;
 
 namespace Celeste.Mod.TeamGames.Entities;
 
 [CustomEntity("TeamGames/SyncedZipMover")]
 public class SyncedZipMover : ZipMover
 {
+	public enum MyThemes
+	{
+		Normal,
+		Moon,
+		Brass
+	}
+
+	private static Dictionary<MyThemes, Themes> enumReduction = new() {
+		[MyThemes.Normal] = Themes.Normal,
+		[MyThemes.Brass] = Themes.Normal,
+		[MyThemes.Moon] = Themes.Moon
+	};
+
+	private MyThemes myTheme;
 
 	/*
 	public static ParticleType P_Scrape;
@@ -50,7 +65,7 @@ public class SyncedZipMover : ZipMover
 
 	public bool Toggle = false;
 
-	protected float remoteTriggerCatchupTime = -10f;
+	protected long triggerTime = 0;
 
 	protected int moveGroup
 	{
@@ -72,11 +87,64 @@ public class SyncedZipMover : ZipMover
 
 	private static Dictionary<int, List<SyncedZipMover>> moveGroups = new();
 
+	private static Dictionary<int, bool> toggledGroups = new();
 
-	public SyncedZipMover(EntityData data, Vector2 offset) : base(data, offset)
+	public SyncedZipMover(Vector2 position, int width, int height, Vector2 target, MyThemes theme, bool toggle) : base(position, width, height, target, enumReduction[theme])
 	{
+		this.myTheme = theme;
+		Toggle = toggle;
+		// Replace base initialization with this
 		Components.RemoveAll<Coroutine>();
 		Add(new Coroutine(Sequence()));
+		string path;
+		string id;
+		string key;
+		switch (theme)
+		{
+			case MyThemes.Moon:
+				path = "objects/zipmover/moon/light";
+				id = "objects/zipmover/moon/block";
+				key = "objects/zipmover/moon/innercog";
+				drawBlackBorder = false;
+				break;
+			case MyThemes.Brass:
+				path = "objects/TeamGames/brassZip/light";
+				id = "objects/TeamGames/brassZip/block";
+				key = "objects/TeamGames/brassZip/innercog";
+				drawBlackBorder = true;
+				break;
+			default:
+				path = "objects/zipmover/light";
+				id = "objects/zipmover/block";
+				key = "objects/zipmover/innercog";
+				drawBlackBorder = true;
+				break;
+		}
+		innerCogs = GFX.Game.GetAtlasSubtextures(key);
+		Remove(streetlight);
+		Add(streetlight = new Sprite(GFX.Game, path));
+		streetlight.Add("frames", "", 1f);
+		streetlight.Play("frames");
+		streetlight.Active = false;
+		streetlight.SetAnimationFrame(1);
+		streetlight.Position = new Vector2(base.Width / 2f - streetlight.Width / 2f, 0f);
+		Add(bloom = new BloomPoint(1f, 6f));
+		bloom.Position = new Vector2(base.Width / 2f, 4f);
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				edges[i, j] = GFX.Game[id].GetSubtexture(i * 8, j * 8, 8, 8);
+			}
+		}
+		SurfaceSoundIndex = 7;
+		sfx.Position = new Vector2(base.Width, base.Height) / 2f;
+		Add(sfx);
+	}
+
+
+	public SyncedZipMover(EntityData data, Vector2 offset) : this(data.Position + offset, data.Width, data.Height, data.Nodes[0] + offset, data.Enum("theme", MyThemes.Normal), data.Bool("toggle"))
+	{
 		moveGroup = (int) data.Float("group");
 		if ((int) data.Float("group") < 0)
 		{
@@ -96,6 +164,12 @@ public class SyncedZipMover : ZipMover
 	public override void Added(Scene scene)
 	{
 		base.Added(scene);
+		// Remain toggled after dying
+		if (Toggle && toggledGroups.ContainsKey(moveGroup) && toggledGroups[moveGroup])
+		{
+			toggleAnchors();
+			Position = start;
+		}
 		SyncedHoldable.ClientContext?.Client.Data.RegisterHandlersIn(this);
 	}
 
@@ -119,33 +193,48 @@ public class SyncedZipMover : ZipMover
 		if (SyncedHoldable.ServerTime < data.SentTime)
 		{
 			Logger.Log(LogLevel.Warn, "TeamGames/SyncedZipMover", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + SyncedHoldable.ServerTime);
+			triggerTime = data.SentTime;
 		} else {
-			// Divides by 1e7 to convert from hundred-nanoseconds to seconds
-			Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "Received message from " + (SyncedHoldable.ServerTime - data.SentTime) / 1e7f + " seconds ago");
-			remoteTriggerCatchupTime = (SyncedHoldable.ServerTime - data.SentTime) / 1e7f;
+			triggerTime = data.SentTime;
 		}
+	}
+
+	public static void GetClientContext(CelesteNetClientContext context)
+	{
+		context.Client.Data.RegisterHandler<DataZipTrigger>(staticHandle);
+	}
+ 	
+	public static void OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
+	{
+		toggledGroups = new();
+	}
+
+	public static void staticHandle(CelesteNetConnection con, DataZipTrigger data)
+	{
+		toggledGroups[data.MoveGroup] = data.Toggled;
 	}
 
 
 	private IEnumerator Sequence()
 	{
-		Vector2 start = Position;
 		while (true)
 		{
-			if (!HasPlayerRider() && remoteTriggerCatchupTime < 0)
+			if (!HasPlayerRider() && triggerTime == 0)
 			{
 				yield return null;
 				continue;
 			}
-			Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "Zip mover triggered");
 			// Update everyone else about the trigger if this zip mover was not itself being triggered remotely
-			if (remoteTriggerCatchupTime < 0)
+			float remoteTriggerCatchupTime = 0;
+			if (triggerTime == 0)
 			{
+				toggledGroups[moveGroup] = !(toggledGroups.ContainsKey(moveGroup) && toggledGroups[moveGroup]);
+			Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "" + moveGroup + " is " + toggledGroups[moveGroup]);
 				// Trigger other zip movers remotely
-				Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "Sending message");
 				DataZipTrigger data = new DataZipTrigger {
 					SentTime = SyncedHoldable.ServerTime,
-					MoveGroup = moveGroup
+					MoveGroup = moveGroup,
+					Toggled = toggledGroups[moveGroup]
 				};
 				SyncedHoldable.ClientContext?.Client.Send(data);
 
@@ -154,21 +243,27 @@ public class SyncedZipMover : ZipMover
 				{
 					foreach (SyncedZipMover other in moveGroups[moveGroup])
 					{
-						other.remoteTriggerCatchupTime = 0f;
+						if (other == this)
+						{
+							continue;
+						}
+						other.triggerTime = SyncedHoldable.ServerTime;
 					}
 				}
+			} else {
+				// Divides by 1e7 to convert from hundred-nanoseconds to seconds
+				remoteTriggerCatchupTime = (SyncedHoldable.ServerTime - triggerTime) / 1e7f;
 			}
+			triggerTime = 0;
 
 			if (remoteTriggerCatchupTime < 0.1f)
 			{
-				Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "Warming up for " + remoteTriggerCatchupTime);
 				sfx.Play((theme == Themes.Normal) ? "event:/game/01_forsaken_city/zip_mover" : "event:/new_content/game/10_farewell/zip_mover");
 				Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
 				StartShaking(0.1f - Math.Max(remoteTriggerCatchupTime, 0f));
 				yield return 0.1f - Math.Max(remoteTriggerCatchupTime, 0f);
 			}
 			Calc.Approach(remoteTriggerCatchupTime, 0f, 0.1f);
-			Logger.Log(LogLevel.Debug, "TeamGames/ZipMover", "Catchup time remaining: " + remoteTriggerCatchupTime);
 			
 			streetlight.SetAnimationFrame(3);
 			StopPlayerRunIntoAnimation = false;
@@ -205,8 +300,10 @@ public class SyncedZipMover : ZipMover
 			}
 			Calc.Approach(remoteTriggerCatchupTime, 0f, 0.3f);
 
-			if (!Toggle)
+			if (Toggle)
 			{
+				toggleAnchors();
+			} else {
 				streetlight.SetAnimationFrame(2);
 				at = Math.Clamp(remoteTriggerCatchupTime, 0f, 1f);
 				do
@@ -225,8 +322,14 @@ public class SyncedZipMover : ZipMover
 			Calc.Approach(remoteTriggerCatchupTime, 0f, 1f);
 
 			yield return Math.Max(0.5f - Math.Max(remoteTriggerCatchupTime, 0), 0f);
-			remoteTriggerCatchupTime = -10f;
 		}
+	}
+
+	private void toggleAnchors()
+	{
+		Vector2 swap = start;
+		start = target;
+		target = swap;
 	}
 
 }

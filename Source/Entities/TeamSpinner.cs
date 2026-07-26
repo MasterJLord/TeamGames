@@ -179,6 +179,10 @@ public class TeamSpinner : Entity
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	private bool InView()
 	{
+		if (base.Scene == null || !(base.Scene is Level))
+		{
+			return true;
+		}
 		Camera camera = (base.Scene as Level).Camera;
 		if (base.X > camera.X - 16f && base.Y > camera.Y - 16f && base.X < camera.X + 320f + 16f)
 		{
@@ -371,8 +375,7 @@ public class TeamSpinner : Entity
 			{
 				filler.Visible = InView();
 			}
-			Player player = base.Scene.Tracker.GetEntity<Player>();
-			isAlignedWithPlayer = TeamManager.GetTeam(player) == MyTeam;
+			isAlignedWithPlayer = newTeam == MyTeam;
 			Collidable = InView();
 		}
 		

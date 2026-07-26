@@ -31,11 +31,15 @@ public class TeamGamesModule : EverestModule {
 	CelesteNetClientContext.OnInit += TeamManager.GetClientContext;
 	CelesteNetClientContext.OnInit += SyncedHoldable.GetClientContext;
 	CelesteNetClientContext.OnInit += TeamBall.GetClientContext;
+	CelesteNetClientContext.OnInit += SyncedZipMover.GetClientContext;
+	Everest.Events.Level.OnExit += SyncedZipMover.OnExit;
     }
 
     public override void Unload() {
 	CelesteNetClientContext.OnInit -= TeamManager.GetClientContext;
 	CelesteNetClientContext.OnInit -= SyncedHoldable.GetClientContext;
 	CelesteNetClientContext.OnInit -= TeamBall.GetClientContext;
+	CelesteNetClientContext.OnInit -= SyncedZipMover.GetClientContext;
+	Everest.Events.Level.OnExit -= SyncedZipMover.OnExit;
     }
 }
