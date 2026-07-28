@@ -39,4 +39,7 @@
 		<Origin x="10" y="22"/>
 		<Loop id="idle" path="blue" frames="0"/>
 	</TeamBallBlue>
+	<Gear2 path="objects/TeamGames/WhiteGear/" start="idle">
+		<Loop id="idle" path="medium" frames="0"/>
+	</Gear2>
 </Sprites>
