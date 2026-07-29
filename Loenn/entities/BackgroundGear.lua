@@ -1,6 +1,8 @@
 
 local Sizes = {
-	"medium"
+	"large",
+	"medium",
+	"small"
 }
 local BackgroundGear = {
 	name = "TeamGames/BackgroundGear",

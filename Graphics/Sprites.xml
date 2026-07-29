@@ -40,6 +40,15 @@
 		<Loop id="idle" path="blue" frames="0"/>
 	</TeamBallBlue>
 	<Gear2 path="objects/TeamGames/WhiteGear/" start="idle">
+		<Justify x="0.5" y="0.5" />
 		<Loop id="idle" path="medium" frames="0"/>
+		<Anim id="spinClockwise" path="medium" frames="1,2,0,1,2" delay="0.066" goto="idle"/>
+		<Anim id="spinCounterclockwise" path="medium" frames="2,1,0,2,1" delay="0.066" goto="idle"/>
 	</Gear2>
+	<Gear3 path="objects/TeamGames/WhiteGear/" start="idle">
+		<Justify x="0.5" y="0.5" />
+		<Loop id="idle" path="large" frames="0"/>
+		<Anim id="spinClockwise" path="large" frames="1,2" delay="0.132" goto="idle"/>
+		<Anim id="spinCounterclockwise" path="large" frames="2,1" delay="0.132" goto="idle"/>
+	</Gear3>
 </Sprites>
