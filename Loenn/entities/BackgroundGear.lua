@@ -6,7 +6,7 @@ local Sizes = {
 }
 local BackgroundGear = {
 	name = "TeamGames/BackgroundGear",
-	depth = -9949,
+	depth = 9949,
 	texture = "objects/TeamGames/WhiteGear/medium0",
 	fieldInformation =
 	{
