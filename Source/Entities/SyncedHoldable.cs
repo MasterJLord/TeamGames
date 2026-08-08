@@ -226,6 +226,7 @@ public abstract class SyncedHoldable : Actor
 				Player player = Scene.Tracker.GetEntity<Player>();
 				if (player != null && ghost != null)
 				{
+					// TODO: carryOffset is not initialized until the local player picks up the gem for the first time
 					Position = (Vector2) (ghost?.Position + player?.carryOffset + Vector2.UnitY * ghost?.Sprite.CarryYOffset);
 				}
 				Hold.CheckAgainstColliders();
@@ -543,6 +544,7 @@ public abstract class SyncedHoldable : Actor
 		// Makes sure that exactly one player is in charge of the holdable at all times
 		if (data.SentTime < claimedTime)
 		{
+			Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "Ignoring update: sent at " + data.SentTime + " and claimed locally at " + claimedTime);
 			return;
 		}
 
@@ -562,7 +564,6 @@ public abstract class SyncedHoldable : Actor
 			Logger.Log(LogLevel.Warn, "TeamGames/SyncedHoldable", "Received message from the future; time paradox imminent! (sent at T=" + data.SentTime + "; received at T=" + ServerTime);
 		} else {
 			// Divides by 1e7 to convert from hundred-nanoseconds to seconds
-			Logger.Log(LogLevel.Debug, "TeamGames/SyncedHoldable", "DeltaTime is " + (ServerTime - data.SentTime) / 1e7f);
 			updateGivenTime((ServerTime - data.SentTime) / 1e7f, true);
 		}
 	}

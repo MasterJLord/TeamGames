@@ -256,6 +256,7 @@ public static class TeamManager
 
 	public static void ScorePoint(Scene scene, TeamManager.Team winningTeam, bool killPlayers = false, Vector2? position = null)
 	{
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Team " + winningTeam + " scored a point" + (killPlayers ? "; killing players" : ""));
 		Player player = scene.Tracker.GetEntity<Player>();
 		Vector2 playerPosition = player == null ? Vector2.Zero : player.Position;
 		bool victory = GetTeam(localPlayerID) == winningTeam;

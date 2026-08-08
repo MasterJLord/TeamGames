@@ -95,7 +95,7 @@ public class SyncedZipMover : ZipMover
 		Toggle = toggle;
 		// Replace base initialization with this
 		Components.RemoveAll<Coroutine>();
-		Add(new Coroutine(Sequence()));
+		Add(new Coroutine(SyncedSequence()));
 		string path;
 		string id;
 		string key;
@@ -170,20 +170,22 @@ public class SyncedZipMover : ZipMover
 			toggleAnchors();
 			Position = start;
 		}
-		SyncedHoldable.ClientContext?.Client.Data.RegisterHandlersIn(this);
+		// SyncedHoldable.ClientContext?.Client.Data.RegisterHandlersIn(this);
 	}
+
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override void Removed(Scene scene)
 	{
 		base.Removed(scene);
-		SyncedHoldable.ClientContext?.Client.Data.UnregisterHandlersIn(this);
+		// SyncedHoldable.ClientContext?.Client.Data.UnregisterHandlersIn(this);
 		if (moveGroup < 0)
 		{
 			moveGroups[moveGroup].Remove(this);
 		}
 	}
 
+	/*
 	public void Handle(CelesteNetConnection con, DataZipTrigger data)
 	{
 		if (moveGroup != data.MoveGroup)
@@ -198,10 +200,11 @@ public class SyncedZipMover : ZipMover
 			triggerTime = data.SentTime;
 		}
 	}
+	*/
 
 	public static void GetClientContext(CelesteNetClientContext context)
 	{
-		context.Client.Data.RegisterHandler<DataZipTrigger>(staticHandle);
+		context.Client.Data.RegisterHandler<DataZipTrigger>(Handle);
 	}
  	
 	public static void OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -209,13 +212,27 @@ public class SyncedZipMover : ZipMover
 		toggledGroups = new();
 	}
 
-	public static void staticHandle(CelesteNetConnection con, DataZipTrigger data)
+	public static void Handle(CelesteNetConnection con, DataZipTrigger data)
 	{
+		if ((toggledGroups.ContainsKey(data.MoveGroup) && toggledGroups[data.MoveGroup]) == data.Toggled && moveGroups.ContainsKey(data.MoveGroup))
+		{
+			foreach(SyncedZipMover mover in moveGroups[data.MoveGroup])
+			{
+				if (mover.Toggle)
+				{
+					return;
+				}
+			}
+		}
 		toggledGroups[data.MoveGroup] = data.Toggled;
+		foreach (SyncedZipMover mover in moveGroups[data.MoveGroup])
+		{
+			mover.triggerTime = data.SentTime;
+		}
 	}
 
 
-	private IEnumerator Sequence()
+	private IEnumerator SyncedSequence()
 	{
 		while (true)
 		{

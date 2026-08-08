@@ -121,6 +121,7 @@ public class TeamBall : SyncedHoldable
 		if (data.IsHeld)
 		{
 			droppedTime = -1;
+			doPhysics = true;
 		} else if (IsHeldRemote) {
 			drop();
 		}
@@ -160,6 +161,11 @@ public class TeamBall : SyncedHoldable
 		{
 			Position = prePosition;
 		}
+		if (isCatchup)
+		{
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "" + IsHeldRemote);
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "t=" + time + "; Delta = " + (Position - prePosition));
+		}
 	}
 
 	private bool checkForGoal()
@@ -184,7 +190,21 @@ public class TeamBall : SyncedHoldable
 		if (checkForGoal())
 		{
 			TeamManager.ScorePoint(Scene, MyTeam, true);
-			SendUpdate();
+			// Similar to SendUpdate but makes absolutely certain the sent position is in the goal
+			if (ClientContext == null)
+			{
+			Position = SpawnPosition;
+				return;
+			}
+			DataHoldableUpdate data = new DataHoldableUpdate {
+				SenderID = (uint) localPlayerID,
+					 EntityID = base.SourceId.ID,
+					 SentTime = ServerTime,
+					 IsHeld = false,
+					 Position = Position,
+					 Velocity = Vector2.Zero
+			};
+			ClientContext.Client.Send(data);
 			Position = SpawnPosition;
 		}
 		spawnSafety -= Engine.DeltaTime;
