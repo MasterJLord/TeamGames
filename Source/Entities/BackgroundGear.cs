@@ -17,8 +17,10 @@ public class BackgroundGear : Entity
 		medium,
 		large
 	}
+	/*
 	public delegate void CassetteSwitchHandler(int index);
 	public static event CassetteSwitchHandler CassetteBlockSwitched;
+	*/
 
 	public float ScrollSpeed = 1.0f;
 	public Vector2 StartPosition;
@@ -43,11 +45,13 @@ public class BackgroundGear : Entity
 	private float _cycleTime;
 
 
+	/*
 	public static void TriggerGears(On.Celeste.CassetteBlockManager.orig_SetActiveIndex orig, CassetteBlockManager self, int index)
 	{
 		orig(self, index);
 		CassetteBlockSwitched?.Invoke(index);
 	}
+	*/
 
 	public BackgroundGear(EntityData data, Vector2 offset) : base(data.Position + offset) 
 	{
@@ -78,8 +82,12 @@ public class BackgroundGear : Entity
 		CassetteBlockManager musicManager = Scene.Tracker.GetEntity<CassetteBlockManager>();
 		if (musicManager != null)
 		{
+			int maxBeat = SceneAs<Level>().CassetteBlockBeats;
+			CassetteListener listener = new CassetteListener((base.SourceId.ID / 2) % maxBeat);
+			listener.OnActivated += Rotate;
+			Add(listener);
 			musicSynced = true;
-			CassetteBlockSwitched += OnCassetteSwitched;
+			// CassetteBlockSwitched += OnCassetteSwitched;
 		}
 	}
 
@@ -88,7 +96,7 @@ public class BackgroundGear : Entity
 		base.Removed(scene);
 		if (musicSynced)
 		{
-			CassetteBlockSwitched -= OnCassetteSwitched;
+			// CassetteBlockSwitched -= OnCassetteSwitched;
 		}
 	}
 
