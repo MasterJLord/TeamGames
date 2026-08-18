@@ -33,7 +33,7 @@ public class TeamGamesModule : EverestModule {
 	CelesteNetClientContext.OnInit += TeamBall.GetClientContext;
 	CelesteNetClientContext.OnInit += SyncedZipMover.GetClientContext;
 	Everest.Events.Level.OnExit += SyncedZipMover.OnExit;
-	On.Celeste.CassetteBlockManager.SetActiveIndex += BackgroundGear.TriggerGears;
+	// On.Celeste.CassetteBlockManager.SetActiveIndex += BackgroundGear.TriggerGears;
     }
 
     public override void Unload() {
@@ -42,6 +42,6 @@ public class TeamGamesModule : EverestModule {
 	CelesteNetClientContext.OnInit -= TeamBall.GetClientContext;
 	CelesteNetClientContext.OnInit -= SyncedZipMover.GetClientContext;
 	Everest.Events.Level.OnExit -= SyncedZipMover.OnExit;
-	On.Celeste.CassetteBlockManager.SetActiveIndex -= BackgroundGear.TriggerGears;
+	// On.Celeste.CassetteBlockManager.SetActiveIndex -= BackgroundGear.TriggerGears;
     }
 }

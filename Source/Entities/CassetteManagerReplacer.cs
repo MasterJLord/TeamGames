@@ -38,9 +38,11 @@ public class CassetteManagerReplacer : Entity
 
 	private int beatIndexMax;
 
+	private float lastMusicTime;
+
 	public CassetteManagerReplacer(EntityData data, Vector2 offset) : base()
 	{
-		base.Tag = Tags.Global;
+		// base.Tag = Tags.Global;
 		Add(new TransitionListener
 		{
 			OnOutBegin = [MethodImpl(MethodImplOptions.NoInlining)] () =>
@@ -52,23 +54,33 @@ public class CassetteManagerReplacer : Entity
 				}
 			}
 		});
+		lastMusicTime = getMusicTime();
 	}
 
-	public bool onMusicInterval(EventInstance music, float interval, float offset = 0f)
+	private float getMusicTime()
+	{
+		return getMusicTime(null);
+	}
+
+	private float getMusicTime(EventInstance music)
 	{
 		if (music == null)
 		{
 			music = Audio.CurrentMusicEventInstance;
 			if (music == null)
 			{
-				return false;
+				return 0;
 			}
 		}
 		int rawMusicTime = 0;
 		music.getTimelinePosition(out rawMusicTime);
-		float musicTime = rawMusicTime / 100f - offset;
-		return (int) (musicTime / interval) != (int) ((musicTime - Engine.RawDeltaTime) / interval);
+		return rawMusicTime / 1000f;
+	}
 
+
+	public bool onMusicInterval(float interval, float offset = 0f)
+	{
+		return (int) ((getMusicTime() - offset) / interval) > (int) ((lastMusicTime - offset) / interval);
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
@@ -97,7 +109,6 @@ public class CassetteManagerReplacer : Entity
 			areaData.CassetteSong = null;
 		}
 		orig_Awake(scene);
-		Console.WriteLine(isLevelMusic);
 		beatsPerTick = 4;
 		ticksPerSwap = 2;
 		beatIndexMax = 256;
@@ -137,7 +148,6 @@ public class CassetteManagerReplacer : Entity
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override void Removed(Scene scene)
 	{
-		Console.WriteLine("\nRemoved\n");
 		base.Removed(scene);
 		if (!isLevelMusic)
 		{
@@ -179,11 +189,12 @@ public class CassetteManagerReplacer : Entity
 		{
 			AdvanceMusic();
 		}
+		lastMusicTime = getMusicTime();
 	}
 
 	public void AdvanceMusic()
 	{
-		if (!onMusicInterval(null, 1f / (6f * tempoMult), 0))
+		if (!onMusicInterval(1f / (6f * tempoMult), 0))
 		{
 			return;
 		}
