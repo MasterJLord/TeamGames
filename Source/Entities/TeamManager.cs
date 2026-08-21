@@ -60,7 +60,7 @@ public static class TeamManager
 		[Team.BLUE] = Calc.HexToColor("5b6fe1"),
 		[Team.YELLOW] = Calc.HexToColor("ffff00"),
 		[Team.NONE] = Calc.HexToColor("ffffff"),
-		[Team.UNSET] = Calc.HexToColor("ac3232") // This won't set the player's hair to the appropriate color if they are using a non-default hair color, but I can't think of a situation where you would want to set the player's team to unset intentionally, so I'm not going to worry about it
+		[Team.UNSET] = Calc.HexToColor("ac3232")
 	};
 
 	public static Dictionary<Team, Color> TeamColorsAlternate = new Dictionary<Team, Color>() 
@@ -144,9 +144,6 @@ public static class TeamManager
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Switching Local Player's Team (" + localPlayerID + " is now " + newTeam + ")");
 		OnLocalPlayerSwitched(newTeam);
 		playerTeamAssignments[(uint) localPlayerID] = newTeam;
-		// Changes the player's hair color to their new team's colors
-		Player.NormalHairColor = TeamColors[newTeam];
-		Player.UsedHairColor = TeamColorsAlternate[newTeam];
 		// Updates the local player's team remotely
 		if (clientContext == null)
 		{
@@ -185,6 +182,7 @@ public static class TeamManager
 		data.RegisterHandler<DataTeamsRequest>(Handle);
 		data.RegisterHandler<DataSync>(Handle);
 		data.RegisterHandler<DataChannelMove>(Handle);
+		data.RegisterFilter<DataPlayerFrame>(RecolorHair);
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Got client context");
 	}
 
@@ -325,6 +323,19 @@ public static class TeamManager
 			Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Receiving teams list: player " + playerID + " is " + data.PlayerAssignments[playerID]);
 			SetTeamRemote(playerID, data.PlayerAssignments[playerID]);
 		}
+	}
+
+	private static bool RecolorHair(CelesteNetConnection con, DataPlayerFrame data)
+	{
+		if (data.Player == null || GetTeam(data.Player.ID) == Team.UNSET)
+		{
+			return true;
+		}
+		data.HairColors = new Color[] {
+			TeamColors[GetTeam(data.Player.ID)],
+			TeamColorsAlternate[GetTeam(data.Player.ID)]
+		};
+		return true;
 	}
 
 	public static void ScorePoint(Scene scene, TeamManager.Team winningTeam, bool killPlayers = false, Vector2? position = null)
