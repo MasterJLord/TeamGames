@@ -163,8 +163,8 @@ public class TeamBall : SyncedHoldable
 		}
 		if (isCatchup)
 		{
-			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "" + IsHeldRemote);
-			Logger.Log(LogLevel.Debug, "TeamGames/TeamBall", "t=" + time + "; Delta = " + (Position - prePosition));
+			Logger.Log(LogLevel.Verbose, "TeamGames/TeamBall", "" + IsHeldRemote);
+			Logger.Log(LogLevel.Verbose, "TeamGames/TeamBall", "t=" + time + "; Delta = " + (Position - prePosition));
 		}
 	}
 

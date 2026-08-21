@@ -152,6 +152,10 @@ public class TeamSpinner : Entity
 		}
 		else
 		{
+			if (!expanded && InView())
+			{
+				CreateSprites();
+			}
 			base.Update();
 			if (base.Scene.OnInterval(0.25f, offset) && !InView())
 			{
@@ -375,7 +379,6 @@ public class TeamSpinner : Entity
 			{
 				filler.Visible = InView();
 			}
-			isAlignedWithPlayer = newTeam == MyTeam;
 			Collidable = InView();
 		}
 		

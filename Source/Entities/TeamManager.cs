@@ -14,6 +14,35 @@ namespace Celeste.Mod.TeamGames.Entities;
 public static class TeamManager 
 {
 
+	private class TeamSyncerDelayer : Entity
+	{
+		private const float attemptIntervals = 0.5f;
+		public static Level Level = null;
+		public static TeamSyncerDelayer Instance;
+
+		public TeamSyncerDelayer() : base(Vector2.Zero)
+		{
+			Add(new Coroutine(Sequence()));
+			Instance = this;
+		}
+
+		public override void Removed(Scene scene)
+		{
+			if (Instance == this)
+			{
+				Instance = null;
+			}
+		}
+
+		public IEnumerator<float> Sequence()
+		{
+			while (true)
+			{
+				yield return attemptIntervals;
+				TeamManager.TrySyncTeams();
+			}
+		}
+	}
 	public enum Team 
 	{
 		UNSET = -1,
@@ -64,6 +93,7 @@ public static class TeamManager
 	public static event TeamSwitchHandler LocalPlayerSwitched;
 	public static event TeamSwitchHandler RemotePlayerSwitched;
 	
+	private static bool TeamsSynced = false;
 
 	public static Team GetTeam(Actor player, Team defaultTeam = Team.UNSET) 
 	{
@@ -167,18 +197,65 @@ public static class TeamManager
 
 	public static void Handle(CelesteNetConnection con, DataChannelMove data)
 	{
-		if (data.Player == null || data.Player.ID != localPlayerID)
+		ResetTeams();
+	}
+
+	public static void OnEnter(Session session, bool fromSaveData)
+	{
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Entering level - resetting teams");
+		// TODO : is the TrySyncTeams in ResetTeams happening too soon here?
+		ResetTeams();
+	}
+
+	private static void ResetTeams()
+	{
+		TeamsSynced = false;
+		playerTeamAssignments = new();
+		OnLocalPlayerSwitched(Team.UNSET);
+		TrySyncTeams();
+	}
+
+	public static void OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
+	{
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Loaded level");
+		TeamSyncerDelayer.Level = level;
+		if (TeamsSynced)
 		{
 			return;
 		}
-		OnEnterLobby();
+		TrySyncTeams();
 	}
 
-	public static void OnEnterLobby()
+	public static void TrySyncTeams()
 	{
-		playerTeamAssignments = new();
-		OnLocalPlayerSwitched(Team.UNSET);
-		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", clientContext?.Client == null ? "true" : "false");
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Attempting to sync teams");
+
+		if (clientContext != null && clientContext.Client.IsReady)
+		{
+			SyncTeams();
+			TeamsSynced = true;
+			if (TeamSyncerDelayer.Instance != null)
+			{
+				TeamSyncerDelayer.Instance.RemoveSelf();
+			}
+			return;
+		}
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Failed to sync teams");
+		if (TeamSyncerDelayer.Level == null)
+		{
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "No level found");
+			return;
+		}
+		if (TeamSyncerDelayer.Instance == null)
+		{
+			TeamSyncerDelayer.Level.Add(new TeamSyncerDelayer());
+		}
+
+	}
+
+	public static void SyncTeams()
+	{
+		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", clientContext?.Client == null ? "Missing client" : "Client found");
 		
 		clientContext?.Client.Send(new DataTeamsRequest {
 			Player = clientContext.Client.PlayerInfo,
@@ -186,10 +263,6 @@ public static class TeamManager
 			});
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Requested teams info");
 		// TODO: this is being called too early, and the request is not being received
-	}
-
-	public static void OnExitLobby(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) 
-	{
 	}
 
 
