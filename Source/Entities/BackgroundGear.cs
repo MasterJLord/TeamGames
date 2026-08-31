@@ -105,7 +105,7 @@ public class BackgroundGear : Entity
 	{
 		base.Update();
 		Vector2 camera = (base.Scene as Level).Camera.Position;
-		Position = StartPosition - camera * ScrollSpeed;
+		Position = StartPosition + camera * ScrollSpeed;
 		if (musicSynced)
 		{
 			return;

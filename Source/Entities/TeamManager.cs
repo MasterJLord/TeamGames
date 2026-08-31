@@ -93,7 +93,8 @@ public static class TeamManager
 	public static event TeamSwitchHandler LocalPlayerSwitched;
 	public static event TeamSwitchHandler RemotePlayerSwitched;
 	
-	private static bool TeamsSynced = false;
+	private static bool teamsSynced = false;
+	private static long lastSyncRequest = 0;
 
 	public static Team GetTeam(Actor player, Team defaultTeam = Team.UNSET) 
 	{
@@ -195,7 +196,11 @@ public static class TeamManager
 
 	public static void Handle(CelesteNetConnection con, DataChannelMove data)
 	{
-		ResetTeams();
+		if (data.Player.ID == clientContext?.Client?.PlayerInfo?.ID) {
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Switching lobby - resetting teams");
+			ResetTeams();
+			TrySyncTeams();
+		}
 	}
 
 	public static void OnEnter(Session session, bool fromSaveData)
@@ -207,17 +212,22 @@ public static class TeamManager
 
 	private static void ResetTeams()
 	{
-		TeamsSynced = false;
 		playerTeamAssignments = new();
 		OnLocalPlayerSwitched(Team.UNSET);
-		TrySyncTeams();
+		DataPlayerInfo[] playerList = clientContext?.Client?.Data?.GetRefs<DataPlayerInfo>();
+		if (playerList != null && playerList.Length < 2)
+		{
+			return;
+		}
+		teamsSynced = false;
+		lastSyncRequest = 0;
 	}
 
 	public static void OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
 	{
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Loaded level");
 		TeamSyncerDelayer.Level = level;
-		if (TeamsSynced)
+		if (teamsSynced)
 		{
 			return;
 		}
@@ -226,12 +236,17 @@ public static class TeamManager
 
 	public static void TrySyncTeams()
 	{
+		if (SyncedHoldable.ServerTime - lastSyncRequest < 9e6) // 0.9 seconds
+		{
+			Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Sync request spam blocked");
+			return;
+		}
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamsList", "Attempting to sync teams");
 
-		if (clientContext != null && clientContext.Client.IsReady)
+		if (clientContext != null && clientContext.Client != null && clientContext.Client.PlayerInfo != null && clientContext.Client.IsReady)
 		{
 			SyncTeams();
-			TeamsSynced = true;
+			lastSyncRequest = SyncedHoldable.ServerTime;
 			if (TeamSyncerDelayer.Instance != null)
 			{
 				TeamSyncerDelayer.Instance.RemoveSelf();
@@ -316,6 +331,7 @@ public static class TeamManager
 
 	private static void Handle(CelesteNetConnection con, DataSync data)
 	{
+		teamsSynced = true;
 		Logger.Log(LogLevel.Debug, "TeamGames/TeamManager", "Received teams list");
 		Dictionary<uint, Team>.KeyCollection ids = data.PlayerAssignments.Keys;
 		foreach (uint playerID in ids)
